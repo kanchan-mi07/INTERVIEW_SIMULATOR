@@ -6,7 +6,7 @@ import InterviewPage from "./pages/InterviewPage";
 import ResultsPage from "./pages/ResultsPage";
 import ProgressPage from "./pages/ProgressPage";
 
-const API = "https://interview-simulator-1-6glc.onrender.com";
+const API = "https://interview-simulator-1-6glc.onrender.com/api";
 
 export default function App() {
   // ── Restore user from localStorage on page refresh ───────────────────────

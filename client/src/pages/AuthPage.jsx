@@ -23,7 +23,7 @@ input:-webkit-autofill{
 .fu{animation:fadeUp .5s ease both}
 `;
 
-const API = "https://interview-simulator-1-6glc.onrender.com";
+const API = "https://interview-simulator-1-6glc.onrender.com/api";
 
 // ── Spinner — defined OUTSIDE so it never re-creates ─────────────────────────
 function Spinner({ color = "#020408" }) {
@@ -216,12 +216,14 @@ export default function AuthPage({ onLogin }) {
   // ── Submit ──────────────────────────────────────────────────────────────
   const submit = async () => {
     if (!validate()) return;
+
     if (mode === "signup" && step === 1) {
       setStep(2);
       return;
     }
 
     setLoading(true);
+
     try {
       const endpoint =
         mode === "login" ? `${API}/auth/login` : `${API}/auth/signup`;
@@ -230,22 +232,37 @@ export default function AuthPage({ onLogin }) {
         mode === "login"
           ? { email: form.email, password: form.password }
           : {
-              name: form.name.trim(),
-              email: form.email,
-              password: form.password,
-              role: form.role || "Developer",
-            };
+            name: form.name.trim(),
+            email: form.email,
+            password: form.password,
+            role: form.role || "Developer",
+          };
+
+      console.log("SENDING DATA:", payload);
+      console.log("API URL:", endpoint);
 
       const res = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(payload),
       });
-      const data = await res.json();
+
+      const text = await res.text();
+      console.log("RAW RESPONSE:", text);
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("Invalid JSON response");
+      }
 
       if (!res.ok) {
+        console.log("ERROR FROM BACKEND:", data);
         setErrors({
-          email: data.message || "Something went wrong. Please try again.",
+          email: data.message || "Something went wrong",
         });
         setLoading(false);
         return;
@@ -253,17 +270,18 @@ export default function AuthPage({ onLogin }) {
 
       localStorage.setItem("auth_token", data.token);
       localStorage.setItem("auth_user", JSON.stringify(data.user));
+
       setLoggedUser(data.user);
       setLoading(false);
       setDone(true);
-    } catch {
+    } catch (err) {
+      console.log("FETCH ERROR:", err);
       setErrors({
-        email: "Cannot reach server. Is the backend running on port 5000?",
+        email: "Server not reachable or request failed",
       });
       setLoading(false);
     }
-  };
-
+  }
   // ── Animate progress bar then redirect ──────────────────────────────────
   useEffect(() => {
     if (!done || !loggedUser) return;
