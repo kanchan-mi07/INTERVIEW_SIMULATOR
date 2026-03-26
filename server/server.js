@@ -8,7 +8,7 @@ const sessionRoutes = require("./routes/sessions");
 
 const app = express();
 
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cors({ origin: "https://interview-simulator-38vxkqo5v-kanchanmi07s-projects.vercel.app", credentials: true }));
 app.use(express.json());
 
 app.use("/api/auth",     authRoutes);

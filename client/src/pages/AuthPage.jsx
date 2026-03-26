@@ -23,7 +23,7 @@ input:-webkit-autofill{
 .fu{animation:fadeUp .5s ease both}
 `;
 
-const API = "/api";
+const API = "https://interview-simulator-1-6glc.onrender.com";
 
 // ── Spinner — defined OUTSIDE so it never re-creates ─────────────────────────
 function Spinner({ color = "#020408" }) {
