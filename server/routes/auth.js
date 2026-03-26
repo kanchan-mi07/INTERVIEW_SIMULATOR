@@ -14,31 +14,22 @@ router.post("/signup", async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
-    // Validate
-    if (!name || !name.trim()) {
+    if (!name || !name.trim())
       return res.status(400).json({ message: "Name is required." });
-    }
-    if (!email || !email.trim()) {
+    if (!email || !email.trim())
       return res.status(400).json({ message: "Email is required." });
-    }
-    if (!password || password.length < 8) {
+    if (!password || password.length < 8)
       return res.status(400).json({ message: "Password must be at least 8 characters." });
-    }
 
-    // Check if email already exists
     const existing = await User.findOne({ email: email.toLowerCase().trim() });
-    if (existing) {
+    if (existing)
       return res.status(400).json({ message: "Email already registered. Please log in." });
-    }
 
-    // Hash password manually — skip pre-save hook entirely
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    // Create and save user with already-hashed password
+    // ✅ NO manual bcrypt.hash() here — pre-save hook in User.js handles it
     const user = await User.create({
       name:     name.trim(),
       email:    email.toLowerCase().trim(),
-      password: hashedPassword,
+      password: password,
       role:     role || "Developer",
     });
 
@@ -46,19 +37,13 @@ router.post("/signup", async (req, res) => {
 
     return res.status(201).json({
       token,
-      user: {
-        id:    user._id,
-        name:  user.name,
-        email: user.email,
-        role:  user.role,
-      },
+      user: { id: user._id, name: user.name, email: user.email, role: user.role },
     });
 
   } catch (err) {
     console.error("Signup error:", err.message);
-    if (err.code === 11000) {
+    if (err.code === 11000)
       return res.status(400).json({ message: "Email already registered. Please log in." });
-    }
     return res.status(500).json({ message: "Signup failed.", error: err.message });
   }
 });
@@ -68,31 +53,23 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
+    if (!email || !password)
       return res.status(400).json({ message: "Email and password are required." });
-    }
 
     const user = await User.findOne({ email: email.toLowerCase().trim() });
-    if (!user) {
+    if (!user)
       return res.status(400).json({ message: "Invalid email or password." });
-    }
 
-    // Compare password directly with bcrypt
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
+    // ✅ Using model's comparePassword method
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch)
       return res.status(400).json({ message: "Invalid email or password." });
-    }
 
     const token = generateToken(user._id);
 
     return res.json({
       token,
-      user: {
-        id:    user._id,
-        name:  user.name,
-        email: user.email,
-        role:  user.role,
-      },
+      user: { id: user._id, name: user.name, email: user.email, role: user.role },
     });
 
   } catch (err) {
