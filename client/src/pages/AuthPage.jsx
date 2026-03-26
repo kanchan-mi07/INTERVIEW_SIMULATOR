@@ -21,11 +21,17 @@ input:-webkit-autofill{
 @keyframes scan{0%{top:-2px}100%{top:100%}}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 .fu{animation:fadeUp .5s ease both}
+
+/* ── Responsive ── */
+@media(max-width:700px){
+  .auth-left{display:none!important}
+  .auth-right{padding:28px 18px!important}
+  .auth-layout{flex-direction:column!important}
+}
 `;
 
 const API = "https://interview-simulator-1-6glc.onrender.com/api";
 
-// ── Spinner — defined OUTSIDE so it never re-creates ─────────────────────────
 function Spinner({ color = "#020408" }) {
   return (
     <div
@@ -42,7 +48,6 @@ function Spinner({ color = "#020408" }) {
   );
 }
 
-// ── Progress bar — defined OUTSIDE ───────────────────────────────────────────
 function ProgressBar({ value }) {
   return (
     <div
@@ -66,12 +71,9 @@ function ProgressBar({ value }) {
   );
 }
 
-// ── Field — defined OUTSIDE so typing does NOT cause remount ─────────────────
-// receives value, onChange, errors, onSubmit as props
 function Field({
   label,
   type,
-  fkey,
   placeholder,
   delay,
   value,
@@ -82,7 +84,6 @@ function Field({
   const [vis, setVis] = useState(false);
   const [foc, setFoc] = useState(false);
   const isP = type === "password";
-
   return (
     <div
       style={{ marginBottom: 18, animation: `fadeUp .5s ${delay}s ease both` }}
@@ -162,7 +163,6 @@ function Field({
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
 export default function AuthPage({ onLogin }) {
   const [mode, setMode] = useState("login");
   const [step, setStep] = useState(1);
@@ -188,11 +188,8 @@ export default function AuthPage({ onLogin }) {
     "Data Engineer",
     "Product Manager",
   ];
-
-  // single handler — updates one field at a time
   const setField = (key, val) => setForm((f) => ({ ...f, [key]: val }));
 
-  // ── Validation ──────────────────────────────────────────────────────────
   const validate = () => {
     const e = {};
     if (mode === "login") {
@@ -213,45 +210,32 @@ export default function AuthPage({ onLogin }) {
     return Object.keys(e).length === 0;
   };
 
-  // ── Submit ──────────────────────────────────────────────────────────────
   const submit = async () => {
     if (!validate()) return;
-
     if (mode === "signup" && step === 1) {
       setStep(2);
       return;
     }
-
     setLoading(true);
-
     try {
       const endpoint =
         mode === "login" ? `${API}/auth/login` : `${API}/auth/signup`;
-
       const payload =
         mode === "login"
           ? { email: form.email, password: form.password }
           : {
-            name: form.name.trim(),
-            email: form.email,
-            password: form.password,
-            role: form.role || "Developer",
-          };
-
-      console.log("SENDING DATA:", payload);
-      console.log("API URL:", endpoint);
+              name: form.name.trim(),
+              email: form.email,
+              password: form.password,
+              role: form.role || "Developer",
+            };
 
       const res = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       const text = await res.text();
-      console.log("RAW RESPONSE:", text);
-
       let data;
       try {
         data = JSON.parse(text);
@@ -260,29 +244,22 @@ export default function AuthPage({ onLogin }) {
       }
 
       if (!res.ok) {
-        console.log("ERROR FROM BACKEND:", data);
-        setErrors({
-          email: data.message || "Something went wrong",
-        });
+        setErrors({ email: data.message || "Something went wrong" });
         setLoading(false);
         return;
       }
 
       localStorage.setItem("auth_token", data.token);
       localStorage.setItem("auth_user", JSON.stringify(data.user));
-
       setLoggedUser(data.user);
       setLoading(false);
       setDone(true);
     } catch (err) {
-      console.log("FETCH ERROR:", err);
-      setErrors({
-        email: "Server not reachable or request failed",
-      });
+      setErrors({ email: "Server not reachable or request failed" });
       setLoading(false);
     }
-  }
-  // ── Animate progress bar then redirect ──────────────────────────────────
+  };
+
   useEffect(() => {
     if (!done || !loggedUser) return;
     const start = Date.now(),
@@ -302,7 +279,6 @@ export default function AuthPage({ onLogin }) {
     setErrors({});
   };
 
-  // ── Success screen ───────────────────────────────────────────────────────
   if (done)
     return (
       <div
@@ -361,15 +337,16 @@ export default function AuthPage({ onLogin }) {
       </div>
     );
 
-  // ── Main layout ──────────────────────────────────────────────────────────
   return (
     <div
+      className="auth-layout"
       style={{ minHeight: "100vh", background: "var(--bg)", display: "flex" }}
     >
       <style>{G + CSS}</style>
 
-      {/* ── Left brand panel ── */}
+      {/* Left brand panel */}
       <div
+        className="auth-left"
         style={{
           flex: "0 0 44%",
           background: "linear-gradient(155deg,#07111c,#020408)",
@@ -403,7 +380,6 @@ export default function AuthPage({ onLogin }) {
           }}
         />
 
-        {/* Logo */}
         <div
           className="fu"
           style={{ display: "flex", alignItems: "center", gap: 12 }}
@@ -447,7 +423,6 @@ export default function AuthPage({ onLogin }) {
           </div>
         </div>
 
-        {/* Headline */}
         <div>
           {(mode === "login"
             ? ["Welcome", "back,", "Candidate."]
@@ -462,7 +437,7 @@ export default function AuthPage({ onLogin }) {
                 style={{
                   fontFamily: "'Outfit',sans-serif",
                   fontWeight: 800,
-                  fontSize: "clamp(30px,3.5vw,50px)",
+                  fontSize: "clamp(28px,3.5vw,50px)",
                   lineHeight: 1.05,
                   color: i === 1 ? "var(--cyan)" : "var(--text)",
                   fontStyle: i === 1 ? "italic" : "normal",
@@ -472,7 +447,6 @@ export default function AuthPage({ onLogin }) {
               </h1>
             </div>
           ))}
-
           <div
             className="fu"
             style={{
@@ -513,7 +487,6 @@ export default function AuthPage({ onLogin }) {
           </div>
         </div>
 
-        {/* Quote */}
         <div
           className="fu"
           style={{
@@ -538,8 +511,9 @@ export default function AuthPage({ onLogin }) {
         </div>
       </div>
 
-      {/* ── Right form panel ── */}
+      {/* Right form panel */}
       <div
+        className="auth-right"
         style={{
           flex: 1,
           display: "flex",
@@ -563,7 +537,44 @@ export default function AuthPage({ onLogin }) {
           }}
         />
 
-        <div style={{ width: "100%", maxWidth: 420 }}>
+        {/* Mobile logo (shown when left panel is hidden) */}
+        <div
+          style={{
+            position: "absolute",
+            top: 20,
+            left: 20,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 9,
+              background: "linear-gradient(135deg,#00C8FF,#0066ff)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 16,
+            }}
+          >
+            🧠
+          </div>
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono',monospace",
+              fontSize: 11,
+              color: "var(--cyan)",
+              letterSpacing: 1.5,
+            }}
+          >
+            INTERVIEWAI
+          </span>
+        </div>
+
+        <div style={{ width: "100%", maxWidth: 420, marginTop: 40 }}>
           {/* Mode toggle */}
           <div
             style={{
@@ -572,7 +583,7 @@ export default function AuthPage({ onLogin }) {
               border: "1px solid var(--border2)",
               borderRadius: 12,
               padding: 4,
-              marginBottom: 30,
+              marginBottom: 28,
             }}
           >
             {["login", "signup"].map((m) => (
@@ -604,8 +615,8 @@ export default function AuthPage({ onLogin }) {
           </div>
 
           {/* Heading */}
-          <div style={{ marginBottom: 24 }}>
-            <h2 style={{ fontWeight: 700, fontSize: 24, marginBottom: 6 }}>
+          <div style={{ marginBottom: 22 }}>
+            <h2 style={{ fontWeight: 700, fontSize: 22, marginBottom: 6 }}>
               {mode === "login"
                 ? "Sign in to continue"
                 : step === 1
@@ -629,7 +640,7 @@ export default function AuthPage({ onLogin }) {
 
           {/* Step bar */}
           {mode === "signup" && (
-            <div style={{ display: "flex", gap: 6, marginBottom: 22 }}>
+            <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
               {[1, 2].map((s) => (
                 <div
                   key={s}
@@ -645,15 +656,12 @@ export default function AuthPage({ onLogin }) {
             </div>
           )}
 
-          
-
-          {/* ── Login fields ── */}
+          {/* Login fields */}
           {mode === "login" && (
             <>
               <Field
                 label="Email Address"
                 type="email"
-                fkey="email"
                 placeholder="you@example.com"
                 delay={0}
                 value={form.email}
@@ -664,7 +672,6 @@ export default function AuthPage({ onLogin }) {
               <Field
                 label="Password"
                 type="password"
-                fkey="password"
                 placeholder="••••••••"
                 delay={0}
                 value={form.password}
@@ -691,12 +698,11 @@ export default function AuthPage({ onLogin }) {
             </>
           )}
 
-          {/* ── Signup step 1 ── */}
+          {/* Signup step 1 */}
           {mode === "signup" && step === 1 && (
             <>
               <Field
                 label="Full Name"
-                fkey="name"
                 placeholder="Your full name"
                 delay={0}
                 value={form.name}
@@ -707,7 +713,6 @@ export default function AuthPage({ onLogin }) {
               <Field
                 label="Email Address"
                 type="email"
-                fkey="email"
                 placeholder="you@example.com"
                 delay={0}
                 value={form.email}
@@ -718,13 +723,12 @@ export default function AuthPage({ onLogin }) {
             </>
           )}
 
-          {/* ── Signup step 2 ── */}
+          {/* Signup step 2 */}
           {mode === "signup" && step === 2 && (
             <>
               <Field
                 label="Password"
                 type="password"
-                fkey="password"
                 placeholder="Min 8 characters"
                 delay={0}
                 value={form.password}
@@ -735,7 +739,6 @@ export default function AuthPage({ onLogin }) {
               <Field
                 label="Confirm Password"
                 type="password"
-                fkey="confirm"
                 placeholder="Repeat password"
                 delay={0}
                 value={form.confirm}
@@ -743,8 +746,6 @@ export default function AuthPage({ onLogin }) {
                 onChange={(e) => setField("confirm", e.target.value)}
                 onSubmit={submit}
               />
-
-              {/* Role picker */}
               <div style={{ marginBottom: 20 }}>
                 <label
                   style={{
@@ -802,7 +803,7 @@ export default function AuthPage({ onLogin }) {
             </>
           )}
 
-          {/* Submit button */}
+          {/* Submit */}
           <button
             onClick={submit}
             disabled={loading}
@@ -840,7 +841,6 @@ export default function AuthPage({ onLogin }) {
             )}
           </button>
 
-          {/* Back button */}
           {mode === "signup" && step === 2 && (
             <div style={{ textAlign: "center", marginTop: 14 }}>
               <button
@@ -859,7 +859,6 @@ export default function AuthPage({ onLogin }) {
             </div>
           )}
 
-          {/* Switch mode */}
           <div style={{ textAlign: "center", marginTop: 22 }}>
             <span
               style={{

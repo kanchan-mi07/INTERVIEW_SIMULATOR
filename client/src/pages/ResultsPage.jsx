@@ -29,9 +29,24 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
 .fu{animation:fadeUp .5s ease both}
+
+@media(max-width:680px){
+  .charts-row{grid-template-columns:1fr!important}
+  .metric-cards{grid-template-columns:repeat(3,1fr)!important}
+  .summary-box{flex-direction:column!important;align-items:center!important;text-align:center!important}
+  .summary-inner{flex-direction:row!important;gap:20px!important}
+  .tabs-row{gap:2px!important}
+  .tabs-row button{font-size:9px!important;padding:8px 4px!important}
+  .action-grid{grid-template-columns:1fr!important}
+  .feedback-grid{grid-template-columns:1fr!important}
+  .bottom-btns{flex-direction:column!important}
+  .voice-item{flex-wrap:wrap!important}
+}
+@media(max-width:400px){
+  .metric-cards{grid-template-columns:repeat(2,1fr)!important}
+}
 `;
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
 const scoreColor = (s) =>
   s >= 80
     ? "var(--lime)"
@@ -41,7 +56,6 @@ const scoreColor = (s) =>
     ? "var(--orange)"
     : "var(--red)";
 
-// ── Score ring ───────────────────────────────────────────────────────────────
 function Ring({ value, label, color, size = 72 }) {
   const r = size / 2 - 6;
   const c = 2 * Math.PI * r;
@@ -100,7 +114,6 @@ function Ring({ value, label, color, size = 72 }) {
   );
 }
 
-// ── Chart tooltip ─────────────────────────────────────────────────────────────
 function ChartTip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
@@ -124,7 +137,6 @@ function ChartTip({ active, payload, label }) {
   );
 }
 
-// ── Section label ─────────────────────────────────────────────────────────────
 function SectionLabel({ children, accent = "var(--cyan)" }) {
   return (
     <div
@@ -153,7 +165,6 @@ function SectionLabel({ children, accent = "var(--cyan)" }) {
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
 export default function ResultsPage({
   session = [],
   role = "frontend",
@@ -164,7 +175,6 @@ export default function ResultsPage({
   const [tab, setTab] = useState("overview");
   const [exp, setExp] = useState(null);
 
-  // Empty state
   if (!session || session.length === 0)
     return (
       <div
@@ -201,7 +211,6 @@ export default function ResultsPage({
       </div>
     );
 
-  // ── Computed stats from real session data ────────────────────────────────
   const scores = session.map((s) => s.feedback.score);
   const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
   const avgConf = Math.round(
@@ -258,20 +267,20 @@ export default function ResultsPage({
     >
       <style>{G + CSS}</style>
 
-      {/* ── Header ── */}
+      {/* Header */}
       <div
         style={{
           background:
             "linear-gradient(180deg,rgba(0,200,255,.06) 0%,transparent 100%)",
-          padding: "44px 24px 32px",
+          padding: "36px 20px 28px",
           textAlign: "center",
           borderBottom: "1px solid var(--border2)",
         }}
       >
         <div
           style={{
-            fontSize: 52,
-            marginBottom: 12,
+            fontSize: 48,
+            marginBottom: 10,
             animation: "pulse 2.5s ease-in-out infinite",
           }}
         >
@@ -281,7 +290,7 @@ export default function ResultsPage({
           className="fu"
           style={{
             fontWeight: 800,
-            fontSize: "clamp(22px,4vw,34px)",
+            fontSize: "clamp(20px,4vw,32px)",
             marginBottom: 6,
           }}
         >
@@ -297,32 +306,33 @@ export default function ResultsPage({
           {session.length} Questions Answered
         </p>
 
-        {/* Summary scores */}
         <div
+          className="summary-box"
           style={{
             display: "inline-flex",
-            gap: 22,
-            marginTop: 26,
+            gap: 20,
+            marginTop: 22,
             background: "var(--surface)",
             border: "1px solid var(--border2)",
             borderRadius: 22,
-            padding: "20px 30px",
+            padding: "18px 24px",
             flexWrap: "wrap",
             justifyContent: "center",
+            alignItems: "center",
           }}
         >
-          <Ring value={avg} label="Overall" color={overallCol} size={100} />
+          <Ring value={avg} label="Overall" color={overallCol} size={90} />
           <div
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: 10,
+              gap: 8,
               justifyContent: "center",
               textAlign: "left",
             }}
           >
             <div>
-              <div style={{ fontWeight: 800, fontSize: 22, color: overallCol }}>
+              <div style={{ fontWeight: 800, fontSize: 20, color: overallCol }}>
                 {overall}
               </div>
               <div
@@ -335,79 +345,40 @@ export default function ResultsPage({
                 Performance Rating
               </div>
             </div>
-            <div style={{ display: "flex", gap: 14 }}>
-              <div>
-                <div
-                  style={{
-                    fontWeight: 700,
-                    fontSize: 16,
-                    color: "var(--lime)",
-                  }}
-                >
-                  {Math.max(...scores)}
+            <div className="summary-inner" style={{ display: "flex", gap: 14 }}>
+              {[
+                ["Best Q", Math.max(...scores), "var(--lime)"],
+                ["Lowest", Math.min(...scores), "var(--orange)"],
+                ["Confidence", `${avgConf}%`, "var(--cyan)"],
+              ].map(([l, v, c]) => (
+                <div key={l}>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: c }}>
+                    {v}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "'JetBrains Mono',monospace",
+                      fontSize: 9,
+                      color: "var(--dim)",
+                    }}
+                  >
+                    {l}
+                  </div>
                 </div>
-                <div
-                  style={{
-                    fontFamily: "'JetBrains Mono',monospace",
-                    fontSize: 9,
-                    color: "var(--dim)",
-                  }}
-                >
-                  Best Q
-                </div>
-              </div>
-              <div>
-                <div
-                  style={{
-                    fontWeight: 700,
-                    fontSize: 16,
-                    color: "var(--orange)",
-                  }}
-                >
-                  {Math.min(...scores)}
-                </div>
-                <div
-                  style={{
-                    fontFamily: "'JetBrains Mono',monospace",
-                    fontSize: 9,
-                    color: "var(--dim)",
-                  }}
-                >
-                  Lowest
-                </div>
-              </div>
-              <div>
-                <div
-                  style={{
-                    fontWeight: 700,
-                    fontSize: 16,
-                    color: "var(--cyan)",
-                  }}
-                >
-                  {avgConf}%
-                </div>
-                <div
-                  style={{
-                    fontFamily: "'JetBrains Mono',monospace",
-                    fontSize: 9,
-                    color: "var(--dim)",
-                  }}
-                >
-                  Confidence
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
 
-      <div style={{ maxWidth: 880, margin: "0 auto", padding: "0 20px 60px" }}>
-        {/* ── Tabs ── */}
+      <div style={{ maxWidth: 880, margin: "0 auto", padding: "0 16px 60px" }}>
+        {/* Tabs */}
         <div
+          className="tabs-row"
           style={{
             display: "flex",
             gap: 4,
-            margin: "24px 0",
+            margin: "20px 0",
             background: "var(--surface)",
             border: "1px solid var(--border2)",
             borderRadius: 12,
@@ -420,7 +391,7 @@ export default function ResultsPage({
               onClick={() => setTab(t)}
               style={{
                 flex: 1,
-                padding: "10px",
+                padding: "10px 6px",
                 borderRadius: 9,
                 border: "none",
                 cursor: "pointer",
@@ -438,30 +409,29 @@ export default function ResultsPage({
           ))}
         </div>
 
-        {/* ══ OVERVIEW TAB ══ */}
+        {/* OVERVIEW */}
         {tab === "overview" && (
           <div>
-            {/* Charts row */}
             <div
+              className="charts-row"
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))",
-                gap: 16,
-                marginBottom: 20,
+                gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))",
+                gap: 14,
+                marginBottom: 16,
               }}
             >
-              {/* Radar chart */}
               <div
                 className="fu"
                 style={{
                   background: "var(--surface)",
                   border: "1px solid var(--border2)",
                   borderRadius: 18,
-                  padding: "22px 16px",
+                  padding: "20px 14px",
                 }}
               >
                 <SectionLabel>Skill Radar</SectionLabel>
-                <ResponsiveContainer width="100%" height={230}>
+                <ResponsiveContainer width="100%" height={200}>
                   <RadarChart data={radarData}>
                     <PolarGrid stroke="var(--border2)" />
                     <PolarAngleAxis
@@ -484,8 +454,6 @@ export default function ResultsPage({
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
-
-              {/* Bar chart */}
               <div
                 className="fu"
                 style={{
@@ -493,13 +461,13 @@ export default function ResultsPage({
                   background: "var(--surface)",
                   border: "1px solid var(--border2)",
                   borderRadius: 18,
-                  padding: "22px 16px",
+                  padding: "20px 14px",
                 }}
               >
                 <SectionLabel accent="var(--orange)">
                   Score Per Question
                 </SectionLabel>
-                <ResponsiveContainer width="100%" height={230}>
+                <ResponsiveContainer width="100%" height={200}>
                   <BarChart
                     data={session.map((s, i) => ({
                       name: `Q${i + 1}`,
@@ -551,12 +519,11 @@ export default function ResultsPage({
                 </ResponsiveContainer>
               </div>
             </div>
-
-            {/* Metric cards */}
             <div
+              className="metric-cards"
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill,minmax(130px,1fr))",
+                gridTemplateColumns: "repeat(auto-fill,minmax(120px,1fr))",
                 gap: 10,
               }}
             >
@@ -591,15 +558,15 @@ export default function ResultsPage({
                     background: "var(--surface)",
                     border: "1px solid var(--border2)",
                     borderRadius: 14,
-                    padding: 14,
+                    padding: "12px 10px",
                     textAlign: "center",
                   }}
                 >
-                  <div style={{ fontSize: 20, marginBottom: 5 }}>{m.i}</div>
+                  <div style={{ fontSize: 18, marginBottom: 4 }}>{m.i}</div>
                   <div
                     style={{
                       fontWeight: 800,
-                      fontSize: 20,
+                      fontSize: 18,
                       color: m.c,
                       fontFamily: "'JetBrains Mono',monospace",
                     }}
@@ -623,7 +590,7 @@ export default function ResultsPage({
           </div>
         )}
 
-        {/* ══ QUESTIONS TAB ══ */}
+        {/* QUESTIONS */}
         {tab === "questions" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {session.map((s, i) => (
@@ -637,14 +604,13 @@ export default function ResultsPage({
                   borderRadius: 16,
                 }}
               >
-                {/* Accordion header */}
                 <button
                   onClick={() => setExp(exp === i ? null : i)}
                   style={{
                     width: "100%",
                     background: "none",
                     border: "none",
-                    padding: "15px 18px",
+                    padding: "14px 16px",
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
@@ -656,7 +622,7 @@ export default function ResultsPage({
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 12,
+                      gap: 10,
                       textAlign: "left",
                     }}
                   >
@@ -664,9 +630,9 @@ export default function ResultsPage({
                       style={{
                         fontFamily: "'JetBrains Mono',monospace",
                         fontWeight: 700,
-                        fontSize: 22,
+                        fontSize: 20,
                         color: scoreColor(s.feedback.score),
-                        minWidth: 46,
+                        minWidth: 40,
                       }}
                     >
                       {s.feedback.score}
@@ -687,7 +653,7 @@ export default function ResultsPage({
                         style={{
                           fontSize: 13,
                           lineHeight: 1.4,
-                          maxWidth: 480,
+                          maxWidth: 400,
                           textAlign: "left",
                         }}
                       >
@@ -696,7 +662,13 @@ export default function ResultsPage({
                     </div>
                   </div>
                   <div
-                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      flexShrink: 0,
+                      marginLeft: 8,
+                    }}
                   >
                     <span
                       style={{
@@ -715,16 +687,13 @@ export default function ResultsPage({
                     </span>
                   </div>
                 </button>
-
-                {/* Expanded content */}
                 {exp === i && (
-                  <div style={{ padding: "0 18px 18px" }}>
-                    {/* Mini rings */}
+                  <div style={{ padding: "0 16px 16px" }}>
                     <div
                       style={{
                         display: "flex",
-                        gap: 14,
-                        marginBottom: 14,
+                        gap: 12,
+                        marginBottom: 12,
                         flexWrap: "wrap",
                       }}
                     >
@@ -732,28 +701,26 @@ export default function ResultsPage({
                         value={s.feedback.confidence}
                         label="Confidence"
                         color="var(--purple)"
-                        size={66}
+                        size={62}
                       />
                       <Ring
                         value={s.feedback.clarity}
                         label="Clarity"
                         color="var(--lime)"
-                        size={66}
+                        size={62}
                       />
                       <Ring
                         value={s.feedback.technicalDepth}
                         label="Depth"
                         color="var(--orange)"
-                        size={66}
+                        size={62}
                       />
                     </div>
-
-                    {/* Answer */}
                     <div
                       style={{
                         background: "var(--surface2)",
                         borderRadius: 10,
-                        padding: 13,
+                        padding: 12,
                         fontSize: 12,
                         color: "var(--muted)",
                         lineHeight: 1.7,
@@ -773,9 +740,8 @@ export default function ResultsPage({
                       </div>
                       {s.answer}
                     </div>
-
-                    {/* Strengths / Improvements */}
                     <div
+                      className="feedback-grid"
                       style={{
                         display: "grid",
                         gridTemplateColumns: "1fr 1fr",
@@ -850,8 +816,6 @@ export default function ResultsPage({
                         ))}
                       </div>
                     </div>
-
-                    {/* Verdict */}
                     <p
                       style={{
                         fontFamily: "'JetBrains Mono',monospace",
@@ -871,24 +835,23 @@ export default function ResultsPage({
           </div>
         )}
 
-        {/* ══ VOICE TAB ══ */}
+        {/* VOICE */}
         {tab === "voice" && (
           <div>
-            {/* Confidence line chart */}
             <div
               className="fu"
               style={{
                 background: "var(--surface)",
                 border: "1px solid var(--border2)",
                 borderRadius: 18,
-                padding: "22px 16px",
-                marginBottom: 18,
+                padding: "20px 14px",
+                marginBottom: 16,
               }}
             >
               <SectionLabel accent="var(--purple)">
                 Confidence Per Question
               </SectionLabel>
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={180}>
                 <LineChart
                   data={session.map((s, i) => ({
                     q: `Q${i + 1}`,
@@ -938,23 +901,20 @@ export default function ResultsPage({
                 </LineChart>
               </ResponsiveContainer>
             </div>
-
-            {/* Per-question voice breakdown */}
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {session.map((s, i) => (
                 <div
                   key={i}
-                  className="fu"
+                  className="voice-item fu"
                   style={{
                     animationDelay: `${i * 0.05}s`,
                     background: "var(--surface)",
                     border: "1px solid var(--border2)",
                     borderRadius: 14,
-                    padding: "13px 18px",
+                    padding: "13px 16px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    flexWrap: "wrap",
                     gap: 10,
                   }}
                 >
@@ -973,12 +933,19 @@ export default function ResultsPage({
                       flex: 1,
                       fontSize: 12,
                       color: "var(--text)",
-                      maxWidth: 260,
+                      minWidth: 0,
                     }}
                   >
-                    {s.question?.question?.slice(0, 55)}…
+                    {s.question?.question?.slice(0, 50)}…
                   </div>
-                  <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                      flexShrink: 0,
+                      flexWrap: "wrap",
+                    }}
+                  >
                     {[
                       {
                         l: "Confidence",
@@ -1001,12 +968,12 @@ export default function ResultsPage({
                     ].map((m) => (
                       <div
                         key={m.l}
-                        style={{ textAlign: "center", minWidth: 50 }}
+                        style={{ textAlign: "center", minWidth: 44 }}
                       >
                         <div
                           style={{
                             fontWeight: 700,
-                            fontSize: 14,
+                            fontSize: 13,
                             color: m.c,
                             fontFamily: "'JetBrains Mono',monospace",
                           }}
@@ -1032,10 +999,9 @@ export default function ResultsPage({
           </div>
         )}
 
-        {/* ══ TIPS TAB ══ */}
+        {/* TIPS */}
         {tab === "tips" && (
           <div>
-            {/* AI coach summary */}
             <div
               className="fu"
               style={{
@@ -1043,8 +1009,8 @@ export default function ResultsPage({
                   "linear-gradient(135deg,rgba(0,200,255,.08),rgba(168,85,247,.08))",
                 border: "1px solid rgba(0,200,255,.2)",
                 borderRadius: 18,
-                padding: 22,
-                marginBottom: 22,
+                padding: 20,
+                marginBottom: 20,
               }}
             >
               <div
@@ -1065,12 +1031,11 @@ export default function ResultsPage({
                 score shows solid knowledge; work on delivery and depth.
               </p>
             </div>
-
-            {/* Action cards */}
             <div
+              className="action-grid"
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))",
+                gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
                 gap: 12,
               }}
             >
@@ -1106,14 +1071,15 @@ export default function ResultsPage({
                     background: "var(--surface)",
                     border: `1px solid ${r.c}20`,
                     borderRadius: 14,
-                    padding: 18,
+                    padding: 16,
                     cursor: "pointer",
                     textAlign: "left",
                     color: "var(--text)",
                     transition: "all .2s",
+                    width: "100%",
                   }}
                 >
-                  <div style={{ fontSize: 28, marginBottom: 10 }}>{r.i}</div>
+                  <div style={{ fontSize: 26, marginBottom: 8 }}>{r.i}</div>
                   <div
                     style={{
                       fontWeight: 700,
@@ -1139,8 +1105,11 @@ export default function ResultsPage({
           </div>
         )}
 
-        {/* ── Bottom action buttons ── */}
-        <div style={{ display: "flex", gap: 12, marginTop: 32 }}>
+        {/* Bottom buttons */}
+        <div
+          className="bottom-btns"
+          style={{ display: "flex", gap: 12, marginTop: 28 }}
+        >
           <button
             onClick={onHome}
             style={{

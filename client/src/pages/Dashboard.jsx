@@ -21,6 +21,39 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;over
 @keyframes orb{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-20px) scale(1.1)}66%{transform:translate(-20px,15px) scale(.95)}}
 .fu{animation:fadeUp .5s ease both}
 .fi{animation:fadeIn .4s ease both}
+
+/* ── Mobile nav overlay ── */
+.mobile-nav{
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(2,4,8,.97);
+  z-index:200;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+}
+.mobile-nav.open{display:flex}
+
+/* ── Responsive breakpoints ── */
+@media(max-width:768px){
+  .nav-tabs{display:none!important}
+  .nav-right-full{display:none!important}
+  .hamburger{display:flex!important}
+  .hero-grid{flex-direction:column!important}
+  .stats-grid{grid-template-columns:1fr 1fr!important}
+  .bottom-grid{grid-template-columns:1fr!important}
+  .roles-grid{grid-template-columns:1fr!important}
+  .tips-grid{grid-template-columns:1fr!important}
+  .tips-quick{grid-template-columns:1fr!important}
+  .modal-box{padding:20px!important}
+  .modal-diff{flex-direction:column!important}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr 1fr!important}
+  .stat-card{padding:12px!important}
+  .hero-pad{padding:20px 16px 60px!important}
+}
 `;
 
 const toRgb = (c) =>
@@ -172,6 +205,7 @@ export default function DashboardPage({
   const [activeTab, setActiveTab] = useState("roles");
   const [searchQ, setSearchQ] = useState("");
   const [showAll, setShowAll] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const tipTimer = useRef(null);
   const quickTimer = useRef(null);
 
@@ -233,6 +267,11 @@ export default function DashboardPage({
     onStart(selRole);
   };
 
+  const navTo = (tab) => {
+    setActiveTab(tab);
+    setMobileNavOpen(false);
+  };
+
   return (
     <div
       style={{
@@ -282,13 +321,146 @@ export default function DashboardPage({
         />
       </div>
 
+      {/* ── Mobile Nav Overlay ── */}
+      <div className={`mobile-nav${mobileNavOpen ? " open" : ""}`}>
+        <button
+          onClick={() => setMobileNavOpen(false)}
+          style={{
+            position: "absolute",
+            top: 20,
+            right: 20,
+            background: "var(--surface2)",
+            border: "1px solid var(--border2)",
+            borderRadius: 8,
+            width: 38,
+            height: 38,
+            cursor: "pointer",
+            color: "var(--muted)",
+            fontSize: 18,
+          }}
+        >
+          ✕
+        </button>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            marginBottom: 32,
+          }}
+        >
+          <div
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 12,
+              background: "linear-gradient(135deg,#00C8FF,#0066ff)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 22,
+            }}
+          >
+            🧠
+          </div>
+          <div
+            style={{
+              fontFamily: "'JetBrains Mono',monospace",
+              fontSize: 13,
+              color: "var(--cyan)",
+              letterSpacing: 2,
+            }}
+          >
+            INTERVIEWAI
+          </div>
+        </div>
+        {[
+          ["roles", "🎯", "Roles"],
+          ["recent", "📋", "History"],
+          ["tips", "💡", "Tips"],
+        ].map(([id, ic, lbl]) => (
+          <button
+            key={id}
+            onClick={() => navTo(id)}
+            style={{
+              width: 220,
+              padding: "14px 20px",
+              background: activeTab === id ? "var(--surface2)" : "transparent",
+              border: `1px solid ${
+                activeTab === id ? "var(--border3)" : "var(--border2)"
+              }`,
+              borderRadius: 12,
+              cursor: "pointer",
+              fontFamily: "'Outfit',sans-serif",
+              fontSize: 15,
+              color: activeTab === id ? "var(--cyan)" : "var(--muted)",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              transition: "all .2s",
+            }}
+          >
+            <span style={{ fontSize: 20 }}>{ic}</span>
+            {lbl}
+          </button>
+        ))}
+        <div
+          style={{
+            marginTop: 16,
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+            width: 220,
+          }}
+        >
+          <button
+            onClick={() => {
+              onProgress();
+              setMobileNavOpen(false);
+            }}
+            style={{
+              background: "rgba(0,200,255,.08)",
+              border: "1px solid rgba(0,200,255,.2)",
+              borderRadius: 12,
+              padding: "12px 20px",
+              cursor: "pointer",
+              fontFamily: "'Outfit',sans-serif",
+              fontSize: 14,
+              color: "var(--cyan)",
+              textAlign: "left",
+            }}
+          >
+            📊 Progress
+          </button>
+          <button
+            onClick={() => {
+              onLogout();
+              setMobileNavOpen(false);
+            }}
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border2)",
+              borderRadius: 12,
+              padding: "12px 20px",
+              cursor: "pointer",
+              fontFamily: "'JetBrains Mono',monospace",
+              fontSize: 12,
+              color: "var(--muted)",
+              textAlign: "left",
+            }}
+          >
+            Log out
+          </button>
+        </div>
+      </div>
+
       {/* ── Navbar ── */}
       <nav
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "0 32px",
+          padding: "0 24px",
           height: 64,
           background: "rgba(2,4,8,.92)",
           backdropFilter: "blur(20px)",
@@ -298,7 +470,8 @@ export default function DashboardPage({
           zIndex: 50,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        {/* Logo */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div
             style={{
               width: 36,
@@ -338,7 +511,8 @@ export default function DashboardPage({
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 4 }}>
+        {/* Desktop tabs */}
+        <div className="nav-tabs" style={{ display: "flex", gap: 4 }}>
           {[
             ["roles", "🎯", "Roles"],
             ["recent", "📋", "History"],
@@ -371,7 +545,11 @@ export default function DashboardPage({
           ))}
         </div>
 
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        {/* Desktop right */}
+        <div
+          className="nav-right-full"
+          style={{ display: "flex", gap: 10, alignItems: "center" }}
+        >
           <button
             onClick={onProgress}
             style={{
@@ -457,29 +635,63 @@ export default function DashboardPage({
             </div>
           </div>
         </div>
+
+        {/* Hamburger (mobile only) */}
+        <button
+          className="hamburger"
+          onClick={() => setMobileNavOpen(true)}
+          style={{
+            display: "none",
+            background: "var(--surface)",
+            border: "1px solid var(--border2)",
+            borderRadius: 8,
+            width: 38,
+            height: 38,
+            cursor: "pointer",
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "column",
+            gap: 5,
+          }}
+        >
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              style={{
+                width: 18,
+                height: 2,
+                background: "var(--muted)",
+                borderRadius: 1,
+              }}
+            />
+          ))}
+        </button>
       </nav>
 
+      {/* ── Content ── */}
       <div
+        className="hero-pad"
         style={{
           maxWidth: 1200,
           margin: "0 auto",
-          padding: "32px 24px 80px",
+          padding: "28px 20px 80px",
           position: "relative",
           zIndex: 1,
         }}
       >
         {/* ── Hero ── */}
-        <div className="fu" style={{ marginBottom: 32 }}>
+        <div className="fu" style={{ marginBottom: 28 }}>
           <div
+            className="hero-grid"
             style={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "flex-start",
-              flexWrap: "wrap",
               gap: 24,
             }}
           >
-            <div style={{ flex: 1, minWidth: 280 }}>
+            {/* Left */}
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div
                 style={{
                   display: "flex",
@@ -488,7 +700,7 @@ export default function DashboardPage({
                   marginBottom: 10,
                 }}
               >
-                <span style={{ fontSize: 26 }}>{greetEmoji}</span>
+                <span style={{ fontSize: 22 }}>{greetEmoji}</span>
                 <span
                   style={{
                     fontFamily: "'JetBrains Mono',monospace",
@@ -503,7 +715,7 @@ export default function DashboardPage({
               <h1
                 style={{
                   fontWeight: 900,
-                  fontSize: "clamp(26px,4vw,46px)",
+                  fontSize: "clamp(22px,4vw,44px)",
                   lineHeight: 1.05,
                   marginBottom: 12,
                 }}
@@ -525,15 +737,16 @@ export default function DashboardPage({
               <p
                 style={{
                   color: "var(--muted)",
-                  fontSize: 15,
-                  maxWidth: 480,
+                  fontSize: 14,
+                  maxWidth: 460,
                   lineHeight: 1.8,
-                  marginBottom: 18,
+                  marginBottom: 16,
                 }}
               >
                 AI-generated questions tailored to your role. Real-time voice
                 analysis, detailed feedback, and progress tracking.
               </p>
+              {/* Quick tip ticker */}
               <div
                 style={{
                   display: "flex",
@@ -562,13 +775,15 @@ export default function DashboardPage({
               </div>
             </div>
 
-            {/* Stats */}
+            {/* Stats grid */}
             <div
+              className="stats-grid"
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
                 gap: 10,
-                minWidth: 260,
+                minWidth: 240,
+                flexShrink: 0,
               }}
             >
               {[
@@ -594,22 +809,20 @@ export default function DashboardPage({
               ].map((s, i) => (
                 <div
                   key={s.l}
-                  className="fu"
+                  className="stat-card fu"
                   style={{
                     animationDelay: `${i * 0.06}s`,
                     background: "var(--surface)",
                     border: "1px solid var(--border2)",
                     borderRadius: 14,
-                    padding: "16px 16px",
-                    transition: "all .25s",
-                    cursor: "default",
+                    padding: "14px 14px",
                   }}
                 >
-                  <div style={{ fontSize: 20, marginBottom: 6 }}>{s.i}</div>
+                  <div style={{ fontSize: 18, marginBottom: 5 }}>{s.i}</div>
                   <div
                     style={{
                       fontWeight: 800,
-                      fontSize: 24,
+                      fontSize: 22,
                       color: s.c,
                       fontFamily: "'JetBrains Mono',monospace",
                       lineHeight: 1,
@@ -657,8 +870,8 @@ export default function DashboardPage({
               background: "var(--surface)",
               border: "1px solid var(--border2)",
               borderRadius: 12,
-              padding: "12px 18px",
-              marginBottom: 24,
+              padding: "12px 16px",
+              marginBottom: 22,
               display: "flex",
               alignItems: "center",
               gap: 10,
@@ -712,8 +925,7 @@ export default function DashboardPage({
                   marginLeft: "auto",
                 }}
               >
-                {6 - rolesUsed.length} more role
-                {6 - rolesUsed.length !== 1 ? "s" : ""} to explore
+                {6 - rolesUsed.length} more to explore
               </span>
             )}
           </div>
@@ -722,12 +934,13 @@ export default function DashboardPage({
         {/* ── ROLES TAB ── */}
         {activeTab === "roles" && (
           <div>
+            {/* Header + search */}
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                marginBottom: 18,
+                marginBottom: 16,
                 flexWrap: "wrap",
                 gap: 12,
               }}
@@ -768,7 +981,7 @@ export default function DashboardPage({
                     fontSize: 13,
                     color: "var(--text)",
                     outline: "none",
-                    width: 220,
+                    width: 200,
                   }}
                 />
                 <span
@@ -788,11 +1001,12 @@ export default function DashboardPage({
 
             {/* Role cards */}
             <div
+              className="roles-grid"
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))",
+                gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))",
                 gap: 14,
-                marginBottom: 32,
+                marginBottom: 28,
               }}
             >
               {filteredRoles.map(([id, r], i) => {
@@ -814,10 +1028,10 @@ export default function DashboardPage({
                       background: isH ? r.bg : "var(--surface)",
                       border: `1px solid ${isH ? r.color : "var(--border2)"}`,
                       borderRadius: 18,
-                      padding: "22px 20px",
+                      padding: "20px 18px",
                       cursor: "pointer",
                       transition: "all .25s",
-                      transform: isH ? "translateY(-5px)" : "translateY(0)",
+                      transform: isH ? "translateY(-4px)" : "translateY(0)",
                       boxShadow: isH ? `0 12px 40px rgba(${cr},.18)` : "none",
                       position: "relative",
                       overflow: "hidden",
@@ -838,26 +1052,25 @@ export default function DashboardPage({
                         }}
                       />
                     )}
-
                     <div
                       style={{
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "flex-start",
-                        marginBottom: 14,
+                        marginBottom: 12,
                       }}
                     >
                       <div
                         style={{
-                          width: 48,
-                          height: 48,
+                          width: 46,
+                          height: 46,
                           borderRadius: 14,
                           background: `rgba(${cr},.12)`,
                           border: `1px solid rgba(${cr},.25)`,
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          fontSize: 24,
+                          fontSize: 22,
                         }}
                       >
                         {r.icon}
@@ -900,11 +1113,10 @@ export default function DashboardPage({
                         )}
                       </div>
                     </div>
-
                     <div
                       style={{
                         fontWeight: 700,
-                        fontSize: 17,
+                        fontSize: 16,
                         color: isH ? r.color : "var(--text)",
                         marginBottom: 8,
                         transition: "color .2s",
@@ -917,7 +1129,7 @@ export default function DashboardPage({
                         display: "flex",
                         flexWrap: "wrap",
                         gap: 5,
-                        marginBottom: 14,
+                        marginBottom: 12,
                       }}
                     >
                       {r.skills.map((s) => (
@@ -1001,6 +1213,7 @@ export default function DashboardPage({
 
             {/* Bottom grid */}
             <div
+              className="bottom-grid"
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr 300px",
@@ -1008,7 +1221,7 @@ export default function DashboardPage({
                 alignItems: "start",
               }}
             >
-              {/* Recent */}
+              {/* Recent sessions */}
               <div>
                 <div
                   style={{
@@ -1069,7 +1282,7 @@ export default function DashboardPage({
                   >
                     <div
                       style={{
-                        fontSize: 34,
+                        fontSize: 32,
                         marginBottom: 10,
                         animation: "float 3s ease-in-out infinite",
                       }}
@@ -1104,7 +1317,6 @@ export default function DashboardPage({
                           borderRadius: 14,
                           padding: "13px 15px",
                           marginBottom: 8,
-                          transition: "all .2s",
                         }}
                       >
                         <div
@@ -1116,15 +1328,15 @@ export default function DashboardPage({
                         >
                           <div
                             style={{
-                              width: 36,
-                              height: 36,
+                              width: 34,
+                              height: 34,
                               borderRadius: 10,
                               background: `rgba(${cr},.1)`,
                               border: `1px solid rgba(${cr},.2)`,
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              fontSize: 17,
+                              fontSize: 16,
                               flexShrink: 0,
                             }}
                           >
@@ -1156,21 +1368,6 @@ export default function DashboardPage({
                               >
                                 {s.difficulty}
                               </span>
-                              {s.usedVoice && (
-                                <span
-                                  style={{
-                                    fontFamily: "'JetBrains Mono',monospace",
-                                    fontSize: 8,
-                                    color: "var(--cyan)",
-                                    background: "rgba(0,200,255,.08)",
-                                    border: "1px solid rgba(0,200,255,.2)",
-                                    borderRadius: 10,
-                                    padding: "1px 5px",
-                                  }}
-                                >
-                                  🎙
-                                </span>
-                              )}
                             </div>
                             <div
                               style={{
@@ -1218,7 +1415,7 @@ export default function DashboardPage({
                 )}
               </div>
 
-              {/* Role performance */}
+              {/* By role */}
               <div>
                 <div
                   style={{
@@ -1352,23 +1549,6 @@ export default function DashboardPage({
                         );
                       })
                       .filter(Boolean)
-                  )}
-                  {rolesUsed.length > 0 && rolesUsed.length < 6 && (
-                    <div
-                      style={{
-                        marginTop: 8,
-                        fontFamily: "'JetBrains Mono',monospace",
-                        fontSize: 9,
-                        color: "var(--dim)",
-                        textAlign: "center",
-                        paddingTop: 10,
-                        borderTop: "1px solid var(--border)",
-                      }}
-                    >
-                      Try {6 - rolesUsed.length} more role
-                      {6 - rolesUsed.length !== 1 ? "s" : ""} to complete your
-                      profile
-                    </div>
                   )}
                 </div>
               </div>
@@ -1622,80 +1802,6 @@ export default function DashboardPage({
                       : "Charts, achievements, and improvement tracking."}
                   </p>
                 </button>
-
-                {/* Difficulty guide */}
-                <div
-                  style={{
-                    background: "var(--surface)",
-                    border: "1px solid var(--border2)",
-                    borderRadius: 16,
-                    padding: 16,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontFamily: "'JetBrains Mono',monospace",
-                      fontSize: 9,
-                      color: "var(--muted)",
-                      letterSpacing: 2,
-                      marginBottom: 12,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Difficulty Guide
-                  </div>
-                  {Object.entries(DIFFICULTY_INFO).map(([d, info]) => (
-                    <div
-                      key={d}
-                      style={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: 10,
-                        marginBottom: 10,
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: "50%",
-                          background: info.color,
-                          marginTop: 4,
-                          flexShrink: 0,
-                        }}
-                      />
-                      <div>
-                        <div
-                          style={{
-                            fontWeight: 600,
-                            fontSize: 12,
-                            color: info.color,
-                          }}
-                        >
-                          {d}
-                        </div>
-                        <div
-                          style={{
-                            fontFamily: "'JetBrains Mono',monospace",
-                            fontSize: 9,
-                            color: "var(--muted)",
-                          }}
-                        >
-                          {info.desc}
-                        </div>
-                        <div
-                          style={{
-                            fontFamily: "'JetBrains Mono',monospace",
-                            fontSize: 9,
-                            color: "var(--dim)",
-                          }}
-                        >
-                          {info.questions}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
           </div>
@@ -1810,35 +1916,34 @@ export default function DashboardPage({
                         background: "var(--surface)",
                         border: "1px solid var(--border2)",
                         borderRadius: 16,
-                        padding: "16px 20px",
-                        transition: "all .2s",
+                        padding: "16px 18px",
                       }}
                     >
                       <div
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: 14,
+                          gap: 12,
                           flexWrap: "wrap",
                         }}
                       >
                         <div
                           style={{
-                            width: 44,
-                            height: 44,
+                            width: 42,
+                            height: 42,
                             borderRadius: 12,
                             background: `rgba(${cr},.1)`,
                             border: `1px solid rgba(${cr},.2)`,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            fontSize: 22,
+                            fontSize: 20,
                             flexShrink: 0,
                           }}
                         >
                           {meta.icon}
                         </div>
-                        <div style={{ flex: 1, minWidth: 150 }}>
+                        <div style={{ flex: 1, minWidth: 120 }}>
                           <div
                             style={{
                               display: "flex",
@@ -1848,7 +1953,7 @@ export default function DashboardPage({
                               alignItems: "center",
                             }}
                           >
-                            <span style={{ fontWeight: 600, fontSize: 15 }}>
+                            <span style={{ fontWeight: 600, fontSize: 14 }}>
                               {meta.label}
                             </span>
                             <span
@@ -1891,12 +1996,12 @@ export default function DashboardPage({
                             {s.questionCount} questions
                           </div>
                         </div>
-                        <div style={{ textAlign: "center", minWidth: 80 }}>
+                        <div style={{ textAlign: "center", minWidth: 70 }}>
                           <div
                             style={{
                               fontFamily: "'JetBrains Mono',monospace",
                               fontWeight: 700,
-                              fontSize: 28,
+                              fontSize: 26,
                               color: scoreColor(s.avgScore),
                               lineHeight: 1,
                             }}
@@ -1923,7 +2028,7 @@ export default function DashboardPage({
                             background: `rgba(${cr},.08)`,
                             border: `1px solid rgba(${cr},.2)`,
                             borderRadius: 10,
-                            padding: "8px 16px",
+                            padding: "8px 14px",
                             color: meta.color,
                             fontFamily: "'Outfit',sans-serif",
                             fontWeight: 600,
@@ -1993,9 +2098,10 @@ export default function DashboardPage({
               </span>
             </div>
             <div
+              className="tips-grid"
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))",
+                gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))",
                 gap: 14,
                 marginBottom: 24,
               }}
@@ -2074,7 +2180,7 @@ export default function DashboardPage({
                 background: "var(--surface)",
                 border: "1px solid var(--border2)",
                 borderRadius: 18,
-                padding: 24,
+                padding: 22,
               }}
             >
               <div
@@ -2090,9 +2196,10 @@ export default function DashboardPage({
                 Quick Reminders
               </div>
               <div
+                className="tips-quick"
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill,minmax(250px,1fr))",
+                  gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))",
                   gap: 10,
                 }}
               >
@@ -2166,7 +2273,7 @@ export default function DashboardPage({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: 20,
+                padding: 16,
                 animation: "fadeIn .2s ease both",
               }}
               onClick={(e) => {
@@ -2174,24 +2281,27 @@ export default function DashboardPage({
               }}
             >
               <div
+                className="modal-box"
                 style={{
                   background: "var(--surface)",
                   border: `1px solid rgba(${cr},.35)`,
                   borderRadius: 24,
-                  padding: 32,
-                  maxWidth: 500,
+                  padding: 28,
+                  maxWidth: 480,
                   width: "100%",
                   position: "relative",
                   animation: "fadeUp .3s ease both",
                   boxShadow: `0 24px 80px rgba(${cr},.15)`,
+                  maxHeight: "90vh",
+                  overflowY: "auto",
                 }}
               >
                 <button
                   onClick={() => setShowModal(false)}
                   style={{
                     position: "absolute",
-                    top: 16,
-                    right: 16,
+                    top: 14,
+                    right: 14,
                     background: "var(--surface2)",
                     border: "1px solid var(--border2)",
                     borderRadius: 8,
@@ -2213,27 +2323,27 @@ export default function DashboardPage({
                     display: "flex",
                     alignItems: "center",
                     gap: 14,
-                    marginBottom: 20,
+                    marginBottom: 18,
                   }}
                 >
                   <div
                     style={{
-                      width: 54,
-                      height: 54,
+                      width: 52,
+                      height: 52,
                       borderRadius: 16,
                       background: `rgba(${cr},.12)`,
                       border: `1px solid rgba(${cr},.3)`,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: 26,
+                      fontSize: 24,
                     }}
                   >
                     {r.icon}
                   </div>
                   <div>
                     <div
-                      style={{ fontWeight: 800, fontSize: 22, marginBottom: 4 }}
+                      style={{ fontWeight: 800, fontSize: 20, marginBottom: 4 }}
                     >
                       {r.label}
                     </div>
@@ -2274,7 +2384,7 @@ export default function DashboardPage({
                     display: "flex",
                     flexWrap: "wrap",
                     gap: 6,
-                    marginBottom: 20,
+                    marginBottom: 18,
                   }}
                 >
                   {r.skills.map((s) => (
@@ -2295,7 +2405,7 @@ export default function DashboardPage({
                   ))}
                 </div>
 
-                <div style={{ marginBottom: 20 }}>
+                <div style={{ marginBottom: 18 }}>
                   <div
                     style={{
                       fontFamily: "'JetBrains Mono',monospace",
@@ -2308,7 +2418,10 @@ export default function DashboardPage({
                   >
                     Select Difficulty
                   </div>
-                  <div style={{ display: "flex", gap: 8 }}>
+                  <div
+                    className="modal-diff"
+                    style={{ display: "flex", gap: 8 }}
+                  >
                     {["Junior", "Mid-Level", "Senior"].map((d) => (
                       <button
                         key={d}
@@ -2323,7 +2436,7 @@ export default function DashboardPage({
                             selDiff === d ? r.color : "var(--border2)"
                           }`,
                           borderRadius: 10,
-                          padding: "10px 8px",
+                          padding: "10px 6px",
                           cursor: "pointer",
                           transition: "all .2s",
                         }}
@@ -2357,7 +2470,7 @@ export default function DashboardPage({
                     background: "var(--surface2)",
                     borderRadius: 12,
                     padding: 14,
-                    marginBottom: 20,
+                    marginBottom: 18,
                   }}
                 >
                   <div

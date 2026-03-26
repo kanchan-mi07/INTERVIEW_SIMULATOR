@@ -29,9 +29,20 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--dim)}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 .fu{animation:fadeUp .5s ease both}
+
+@media(max-width:700px){
+  .stats-row{grid-template-columns:repeat(2,1fr)!important}
+  .radar-row{grid-template-columns:1fr!important}
+  .achievement-grid{grid-template-columns:repeat(2,1fr)!important}
+  .nav-pad{padding:0 16px!important}
+  .content-pad{padding:24px 16px 60px!important}
+}
+@media(max-width:380px){
+  .achievement-grid{grid-template-columns:1fr!important}
+  .stats-row{grid-template-columns:1fr 1fr!important}
+}
 `;
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
 const ROLE_META = {
   frontend: { label: "Frontend Dev", color: "#00C8FF" },
   backend: { label: "Backend Dev", color: "#FF6030" },
@@ -52,7 +63,6 @@ const scoreCol = (s) =>
     ? "var(--orange)"
     : "var(--red)";
 
-// ── Achievement definitions (unlock based on real data) ───────────────────────
 const ACHIEVEMENT_DEFS = [
   {
     icon: "🔥",
@@ -126,7 +136,6 @@ const ACHIEVEMENT_DEFS = [
   },
 ];
 
-// ── Shared sub-components ─────────────────────────────────────────────────────
 function ChartTip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
@@ -187,7 +196,7 @@ function StatCard({ icon, value, label, color, delay = 0 }) {
         background: "var(--surface)",
         border: "1px solid var(--border2)",
         borderRadius: 14,
-        padding: "16px 14px",
+        padding: "14px 12px",
         position: "relative",
         overflow: "hidden",
       }}
@@ -203,11 +212,11 @@ function StatCard({ icon, value, label, color, delay = 0 }) {
           pointerEvents: "none",
         }}
       />
-      <div style={{ fontSize: 22, marginBottom: 6 }}>{icon}</div>
+      <div style={{ fontSize: 20, marginBottom: 6 }}>{icon}</div>
       <div
         style={{
           fontWeight: 800,
-          fontSize: 24,
+          fontSize: 22,
           color,
           fontFamily: "'JetBrains Mono',monospace",
           lineHeight: 1,
@@ -270,7 +279,6 @@ function EmptyState({ onBack }) {
   );
 }
 
-// ── Tab: Overview ─────────────────────────────────────────────────────────────
 function TabOverview({ sessionHistory, onBack }) {
   const total = sessionHistory.length;
   const avgScore = Math.round(
@@ -284,12 +292,11 @@ function TabOverview({ sessionHistory, onBack }) {
   const lastScore = sessionHistory[total - 1].avgScore;
   const improvement = lastScore - firstScore;
 
-  const chartData = sessionHistory.map((s, i) => ({
+  const chartData = sessionHistory.map((s) => ({
     date: fmtDate(s.date),
     score: s.avgScore,
     confidence: s.avgConfidence || Math.round(s.avgScore * 0.9),
   }));
-
   const roleSummary = Object.entries(
     sessionHistory.reduce((acc, s) => {
       if (!acc[s.role]) acc[s.role] = { total: 0, count: 0 };
@@ -303,7 +310,6 @@ function TabOverview({ sessionHistory, onBack }) {
     count: d.count,
     color: ROLE_META[role]?.color || "var(--cyan)",
   }));
-
   const radarData = [
     { skill: "Score", val: avgScore },
     { skill: "Confidence", val: avgConf },
@@ -329,13 +335,13 @@ function TabOverview({ sessionHistory, onBack }) {
 
   return (
     <div>
-      {/* Stat cards */}
       <div
+        className="stats-row"
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill,minmax(140px,1fr))",
+          gridTemplateColumns: "repeat(auto-fill,minmax(130px,1fr))",
           gap: 10,
-          marginBottom: 24,
+          marginBottom: 22,
         }}
       >
         <StatCard
@@ -382,7 +388,6 @@ function TabOverview({ sessionHistory, onBack }) {
         />
       </div>
 
-      {/* Area chart — score over time */}
       <div
         className="fu"
         style={{
@@ -390,8 +395,8 @@ function TabOverview({ sessionHistory, onBack }) {
           background: "var(--surface)",
           border: "1px solid var(--border2)",
           borderRadius: 18,
-          padding: "22px 16px",
-          marginBottom: 18,
+          padding: "20px 14px",
+          marginBottom: 16,
         }}
       >
         <SectionLabel>Score Over Time</SectionLabel>
@@ -408,7 +413,7 @@ function TabOverview({ sessionHistory, onBack }) {
             Complete more sessions to see your trend line
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
@@ -472,8 +477,10 @@ function TabOverview({ sessionHistory, onBack }) {
         )}
       </div>
 
-      {/* Radar + role breakdown */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+      <div
+        className="radar-row"
+        style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}
+      >
         <div
           className="fu"
           style={{
@@ -481,11 +488,11 @@ function TabOverview({ sessionHistory, onBack }) {
             background: "var(--surface)",
             border: "1px solid var(--border2)",
             borderRadius: 18,
-            padding: "22px 16px",
+            padding: "20px 14px",
           }}
         >
           <SectionLabel accent="var(--purple)">Skill Radar</SectionLabel>
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" height={200}>
             <RadarChart data={radarData}>
               <PolarGrid stroke="var(--border2)" />
               <PolarAngleAxis
@@ -508,7 +515,6 @@ function TabOverview({ sessionHistory, onBack }) {
             </RadarChart>
           </ResponsiveContainer>
         </div>
-
         <div
           className="fu"
           style={{
@@ -516,7 +522,7 @@ function TabOverview({ sessionHistory, onBack }) {
             background: "var(--surface)",
             border: "1px solid var(--border2)",
             borderRadius: 18,
-            padding: "22px 16px",
+            padding: "20px 14px",
           }}
         >
           <SectionLabel accent="var(--orange)">Score By Role</SectionLabel>
@@ -526,16 +532,19 @@ function TabOverview({ sessionHistory, onBack }) {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 10,
+                gap: 8,
                 marginBottom: 12,
               }}
             >
               <div
                 style={{
                   fontFamily: "'JetBrains Mono',monospace",
-                  fontSize: 10,
+                  fontSize: 9,
                   color: "var(--muted)",
-                  minWidth: 100,
+                  minWidth: 80,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                 }}
               >
                 {r.role}
@@ -565,7 +574,7 @@ function TabOverview({ sessionHistory, onBack }) {
                   fontFamily: "'JetBrains Mono',monospace",
                   fontSize: 10,
                   color: r.color,
-                  minWidth: 32,
+                  minWidth: 30,
                   textAlign: "right",
                 }}
               >
@@ -576,7 +585,7 @@ function TabOverview({ sessionHistory, onBack }) {
                   fontFamily: "'JetBrains Mono',monospace",
                   fontSize: 9,
                   color: "var(--muted)",
-                  minWidth: 24,
+                  minWidth: 20,
                 }}
               >
                 {r.count}x
@@ -589,17 +598,14 @@ function TabOverview({ sessionHistory, onBack }) {
   );
 }
 
-// ── Tab: History ──────────────────────────────────────────────────────────────
 function TabHistory({ sessionHistory }) {
-  const chartData = sessionHistory.map((s, i) => ({
+  const chartData = sessionHistory.map((s) => ({
     date: fmtDate(s.date),
     score: s.avgScore,
     confidence: s.avgConfidence || Math.round(s.avgScore * 0.9),
   }));
-
   return (
     <div>
-      {/* Bar chart */}
       {chartData.length >= 2 && (
         <div
           className="fu"
@@ -607,12 +613,12 @@ function TabHistory({ sessionHistory }) {
             background: "var(--surface)",
             border: "1px solid var(--border2)",
             borderRadius: 18,
-            padding: "22px 16px",
-            marginBottom: 18,
+            padding: "20px 14px",
+            marginBottom: 16,
           }}
         >
           <SectionLabel accent="var(--orange)">Score History</SectionLabel>
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={180}>
             <BarChart data={chartData}>
               <CartesianGrid
                 stroke="var(--border)"
@@ -658,8 +664,6 @@ function TabHistory({ sessionHistory }) {
           </ResponsiveContainer>
         </div>
       )}
-
-      {/* Session list */}
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {[...sessionHistory].reverse().map((s, i) => {
           const m = ROLE_META[s.role] || {
@@ -675,7 +679,7 @@ function TabHistory({ sessionHistory }) {
                 background: "var(--surface)",
                 border: "1px solid var(--border2)",
                 borderRadius: 14,
-                padding: "14px 18px",
+                padding: "14px 16px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
@@ -688,9 +692,9 @@ function TabHistory({ sessionHistory }) {
                   style={{
                     fontFamily: "'JetBrains Mono',monospace",
                     fontWeight: 700,
-                    fontSize: 24,
+                    fontSize: 22,
                     color: scoreCol(s.avgScore),
-                    minWidth: 48,
+                    minWidth: 44,
                     textAlign: "center",
                   }}
                 >
@@ -756,7 +760,6 @@ function TabHistory({ sessionHistory }) {
   );
 }
 
-// ── Tab: Achievements ─────────────────────────────────────────────────────────
 function TabAchievements({ sessionHistory }) {
   const achievements = ACHIEVEMENT_DEFS.map((a) => ({
     ...a,
@@ -764,10 +767,8 @@ function TabAchievements({ sessionHistory }) {
     progress: a.prog(sessionHistory),
   }));
   const unlocked = achievements.filter((a) => a.unlocked).length;
-
   return (
     <div>
-      {/* Summary banner */}
       <div
         className="fu"
         style={{
@@ -775,11 +776,11 @@ function TabAchievements({ sessionHistory }) {
             "linear-gradient(135deg,rgba(0,200,255,.07),rgba(168,85,247,.07))",
           border: "1px solid rgba(0,200,255,.2)",
           borderRadius: 18,
-          padding: "22px 28px",
-          marginBottom: 22,
+          padding: "20px 22px",
+          marginBottom: 20,
           display: "flex",
           alignItems: "center",
-          gap: 22,
+          gap: 20,
           flexWrap: "wrap",
         }}
       >
@@ -788,13 +789,13 @@ function TabAchievements({ sessionHistory }) {
             style={{
               fontFamily: "'JetBrains Mono',monospace",
               fontWeight: 700,
-              fontSize: 40,
+              fontSize: 36,
               color: "var(--gold)",
               lineHeight: 1,
             }}
           >
             {unlocked}
-            <span style={{ fontSize: 18, color: "var(--muted)" }}>
+            <span style={{ fontSize: 16, color: "var(--muted)" }}>
               /{achievements.length}
             </span>
           </div>
@@ -810,7 +811,7 @@ function TabAchievements({ sessionHistory }) {
             ACHIEVEMENTS UNLOCKED
           </div>
         </div>
-        <div style={{ flex: 1, minWidth: 180 }}>
+        <div style={{ flex: 1, minWidth: 160 }}>
           <div
             style={{
               display: "flex",
@@ -857,12 +858,11 @@ function TabAchievements({ sessionHistory }) {
           </div>
         </div>
       </div>
-
-      {/* Achievement grid */}
       <div
+        className="achievement-grid"
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill,minmax(210px,1fr))",
+          gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))",
           gap: 12,
         }}
       >
@@ -877,7 +877,7 @@ function TabAchievements({ sessionHistory }) {
                 a.unlocked ? "rgba(255,215,0,.25)" : "var(--border2)"
               }`,
               borderRadius: 14,
-              padding: 18,
+              padding: 16,
               position: "relative",
               overflow: "hidden",
               opacity: a.unlocked ? 1 : 0.78,
@@ -898,8 +898,8 @@ function TabAchievements({ sessionHistory }) {
             )}
             <div
               style={{
-                fontSize: 30,
-                marginBottom: 10,
+                fontSize: 28,
+                marginBottom: 8,
                 filter: a.unlocked ? "none" : "grayscale(1) opacity(.4)",
               }}
             >
@@ -910,7 +910,7 @@ function TabAchievements({ sessionHistory }) {
                 fontWeight: 700,
                 fontSize: 13,
                 color: a.unlocked ? "var(--gold)" : "var(--muted)",
-                marginBottom: 5,
+                marginBottom: 4,
               }}
             >
               {a.label}
@@ -925,8 +925,6 @@ function TabAchievements({ sessionHistory }) {
             >
               {a.desc}
             </div>
-
-            {/* Progress bar (locked only) */}
             {!a.unlocked && (
               <>
                 <div
@@ -974,7 +972,6 @@ function TabAchievements({ sessionHistory }) {
                 </div>
               </>
             )}
-
             {a.unlocked && (
               <div
                 style={{
@@ -995,7 +992,6 @@ function TabAchievements({ sessionHistory }) {
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
 export default function ProgressPage({
   user,
   sessionHistory = [],
@@ -1003,9 +999,7 @@ export default function ProgressPage({
   onBack,
 }) {
   const [tab, setTab] = useState("overview");
-
   const hasData = sessionHistory.length > 0;
-
   const TABS = [
     { id: "overview", accent: "var(--cyan)" },
     { id: "history", accent: "var(--orange)" },
@@ -1023,13 +1017,13 @@ export default function ProgressPage({
     >
       <style>{G + CSS}</style>
 
-      {/* ── Navbar ── */}
       <nav
+        className="nav-pad"
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "0 28px",
+          padding: "0 24px",
           height: 60,
           background: "rgba(8,13,20,.95)",
           backdropFilter: "blur(12px)",
@@ -1083,15 +1077,14 @@ export default function ProgressPage({
       </nav>
 
       <div
-        style={{ maxWidth: 1060, margin: "0 auto", padding: "32px 24px 60px" }}
+        className="content-pad"
+        style={{ maxWidth: 1060, margin: "0 auto", padding: "28px 20px 60px" }}
       >
-        {/* ── Page heading ── */}
-        {/* ── Page heading ── */}
-        <div className="fu" style={{ marginBottom: 28 }}>
+        <div className="fu" style={{ marginBottom: 24 }}>
           <h1
             style={{
               fontWeight: 800,
-              fontSize: "clamp(22px,3.5vw,34px)",
+              fontSize: "clamp(20px,3.5vw,32px)",
               marginBottom: 6,
             }}
           >
@@ -1116,12 +1109,13 @@ export default function ProgressPage({
               : "No sessions yet — complete your first interview to see charts here!"}
           </p>
         </div>
-        {/* ── Tab nav ── */}
+
+        {/* Tab nav */}
         <div
           style={{
             display: "flex",
             gap: 8,
-            marginBottom: 26,
+            marginBottom: 24,
             flexWrap: "wrap",
           }}
         >
@@ -1130,7 +1124,7 @@ export default function ProgressPage({
               key={t.id}
               onClick={() => setTab(t.id)}
               style={{
-                padding: "8px 20px",
+                padding: "8px 18px",
                 borderRadius: 22,
                 border: `1.5px solid ${
                   tab === t.id ? t.accent : "var(--border2)"
@@ -1150,21 +1144,18 @@ export default function ProgressPage({
           ))}
         </div>
 
-        {/* ── Tab content ── */}
         {tab === "overview" &&
           (hasData ? (
             <TabOverview sessionHistory={sessionHistory} onBack={onBack} />
           ) : (
             <EmptyState onBack={onBack} />
           ))}
-
         {tab === "history" &&
           (hasData ? (
             <TabHistory sessionHistory={sessionHistory} />
           ) : (
             <EmptyState onBack={onBack} />
           ))}
-
         {tab === "achievements" && (
           <TabAchievements sessionHistory={sessionHistory} />
         )}
