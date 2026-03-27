@@ -960,17 +960,16 @@ function scoreLocal(answer, metrics) {
 
   // Empty / no answer
   if (text === "" || text === "(no answer given)" || words < 3) {
-    const baseConf = Math.max(20, (metrics.confidence || 30) - 10);
     return {
-      score: 20,
+      score: 18,
       grade: "F",
-      confidence: baseConf,
-      clarity: 18,
-      technicalDepth: 15,
+      confidence: 15,
+      clarity: 12,
+      technicalDepth: 10,
       strengths: ["Attempted to participate in the interview"],
       improvements: [
-        "Please provide a response to the question",
-        "Even a brief answer demonstrates your thought process",
+        "Please provide a response — even a short one shows your thought process",
+        "Aim for at least 3-4 sentences with a concrete example",
       ],
       verdict:
         "No answer was provided. Always attempt an answer — partial credit is better than silence.",
@@ -1003,9 +1002,11 @@ function scoreLocal(answer, metrics) {
   const isDetailed = words > 80;
   const isModerate = words >= 30 && words <= 80;
   const isTooShort = words < 15;
+  const isTooLong = words > 250;
 
   // ── Base score from word count ────────────────────────────────────────────
-  let score = 30;
+  // Start at 40 — a person who answered at all deserves credit
+  let score = 40;
   if (words >= 15) score += 8;
   if (words >= 30) score += 8;
   if (words >= 60) score += 7;
@@ -1019,63 +1020,72 @@ function scoreLocal(answer, metrics) {
   if (hasNumbers) score += 6;
   if (hasComparison) score += 6;
 
+  // ── Penalties ─────────────────────────────────────────────────────────────
+  if (isTooShort) score -= 12;
+  if (isTooLong) score -= 5;
+
   // ── Voice metrics ─────────────────────────────────────────────────────────
-  const conf = metrics.confidence || 50;
-  const pace = metrics.pace || 120;
+  const conf = metrics.confidence || 60;
   const fill = metrics.fillerCount || 0;
   if (conf > 75) score += 5;
-  else if (conf < 45) score -= 5;
-  if (fill > 5) score -= 6;
+  else if (conf < 40) score -= 4;
+  if (fill > 5) score -= 5;
   else if (fill === 0 && words > 20) score += 3;
 
-  score = Math.min(95, Math.max(20, score));
+  score = Math.min(96, Math.max(22, score));
 
-  // ── Independent metrics (each computed differently) ───────────────────────
-  // Confidence: voice-based OR estimated from delivery quality
-  const confidence = Math.round(
-    metrics.fillerCount !== undefined
-      ? conf // real voice metric
-      : Math.min(
-          90,
-          Math.max(
-            25,
-            50 +
-              words * 0.4 +
-              (hasExample ? 8 : 0) +
-              (isStructured ? 5 : 0) -
-              (isTooShort ? 15 : 0)
-          )
-        )
-  );
-
-  // Clarity: based on structure + word count + no excessive length
+  // ── CLARITY — measures HOW WELL the answer is communicated ───────────────
+  // Base 55: most people communicate adequately; bonuses for structure & length
   const clarity = Math.round(
     Math.min(
-      95,
+      96,
       Math.max(
         20,
-        35 +
-          (isStructured ? 20 : 0) +
-          (isModerate ? 15 : 0) +
-          (isDetailed ? 10 : 0) +
-          (isTooShort ? -15 : 0) +
-          (words > 200 ? -8 : 0) // too long hurts clarity
+        55 +
+          (isStructured ? 18 : 0) + // clear structure is the biggest clarity boost
+          (isModerate ? 12 : 0) + // right length = clearer
+          (isDetailed ? 8 : 0) - // detailed but not rambling
+          (isTooShort ? 18 : 0) - // too short = unclear / incomplete
+          (isTooLong ? 8 : 0) + // too long hurts clarity
+          (hasExample ? 6 : 0) // concrete examples aid clarity
       )
     )
   );
 
-  // Technical depth: based on tech terms + examples + comparisons
+  // ── CONFIDENCE — voice-based OR estimated from delivery quality ───────────
+  // When voice is used, use the real metric. When text-only, estimate from length + quality.
+  const confidence = Math.round(
+    metrics.fillerCount !== undefined && metrics.pace !== undefined
+      ? Math.min(95, Math.max(20, conf)) // real voice metric
+      : Math.min(
+          94,
+          Math.max(
+            22,
+            52 +
+              (words >= 30 ? 14 : 0) +
+              (hasExample ? 8 : 0) +
+              (isStructured ? 7 : 0) +
+              (hasTech ? 5 : 0) -
+              (isTooShort ? 18 : 0) -
+              (isTooLong ? 4 : 0)
+          )
+        )
+  );
+
+  // ── TECHNICAL DEPTH — measures domain knowledge in the answer ─────────────
+  // Base 40: a reasonable answer that didn't mention tech still shows thinking
   const technicalDepth = Math.round(
     Math.min(
-      95,
+      96,
       Math.max(
-        15,
-        25 +
-          (hasTech ? 22 : 0) +
-          (hasExample ? 15 : 0) +
-          (hasComparison ? 12 : 0) +
-          (hasNumbers ? 10 : 0) +
-          (isTooShort ? -10 : 0)
+        18,
+        40 +
+          (hasTech ? 22 : 0) + // using domain-specific language
+          (hasExample ? 14 : 0) + // real examples = applied knowledge
+          (hasComparison ? 12 : 0) + // trade-offs = deeper understanding
+          (hasNumbers ? 8 : 0) + // quantifying = engineering mindset
+          (isDetailed ? 6 : 0) - // depth requires length
+          (isTooShort ? 15 : 0) // short answers can't show depth
       )
     )
   );
@@ -1101,7 +1111,7 @@ function scoreLocal(answer, metrics) {
     strengths.push("Backed your answer with a concrete real-world example");
   else
     improvements.push(
-      "Add a specific example from your own experience or projects"
+      "Add a specific example from your own experience or a past project"
     );
 
   if (isStructured)
@@ -1127,24 +1137,25 @@ function scoreLocal(answer, metrics) {
     strengths.push("Delivered with good confidence and minimal hesitation");
   else if (conf < 45)
     improvements.push(
-      "Speak more confidently — avoid filler words like 'um' and 'uh'"
+      "Work on confidence — avoid filler words and speak at a steady pace"
     );
 
-  if (words < 15)
+  if (isTooShort)
     improvements.push(
-      "Expand your answer significantly — aim for at least 30 words"
+      "Expand your answer — aim for at least 50 words with examples"
     );
-  else if (words > 200)
+  else if (isTooLong)
     improvements.push(
-      "Be more concise — interviewers prefer clear, focused answers"
+      "Be more concise — interviewers prefer clear, focused 60-90 second answers"
     );
 
-  // Always have at least 1 of each
   if (strengths.length === 0)
-    strengths.push("Engaged with the question and provided a response");
+    strengths.push(
+      "Engaged with the question and provided a complete response"
+    );
   if (improvements.length === 0)
     improvements.push(
-      "Consider mentioning edge cases or potential limitations"
+      "Consider mentioning edge cases or potential limitations of your approach"
     );
 
   // ── Dynamic verdict ───────────────────────────────────────────────────────
@@ -1152,13 +1163,13 @@ function scoreLocal(answer, metrics) {
     score >= 88
       ? "Excellent answer — comprehensive, specific, and well-delivered."
       : score >= 78
-      ? "Strong answer with good depth. Minor improvements would make it exceptional."
+      ? "Strong answer with good depth. Minor additions would make it exceptional."
       : score >= 68
       ? "Solid answer. Adding a concrete example would push this to the next level."
       : score >= 55
       ? "Adequate answer but lacks specificity. Be more detailed and structured."
-      : score >= 40
-      ? "Basic answer — expand significantly with examples and technical detail."
+      : score >= 42
+      ? "Basic answer — expand with examples and technical detail."
       : "Answer needs substantial improvement — aim for more depth and structure.";
 
   return {
