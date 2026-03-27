@@ -7,35 +7,25 @@ const CSS = `
   --bg:#020408;--surface:#080d14;--surface2:#0d1520;--surface3:#111a26;
   --border:#0f1e2e;--border2:#162435;--border3:#1e3248;
   --cyan:#00C8FF;--lime:#7FFF00;--orange:#FF6030;--purple:#A855F7;
-  --gold:#FFD700;--pink:#FF69B4;--text:#e2eaf4;--muted:#3a5570;--dim:#1a2d3f;--red:#ff4444;
+  --gold:#FFD700;--pink:#FF69B4;--text:#e2eaf4;--muted:#8aa8c0;--dim:#2a4560;--red:#ff4444;
 }
 body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;overflow-x:hidden}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border3);border-radius:4px}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes pulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
 @keyframes slideIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
-@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(0,200,255,.15)}50%{box-shadow:0 0 40px rgba(0,200,255,.35)}}
+@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(0,200,255,.12)}50%{box-shadow:0 0 36px rgba(0,200,255,.28)}}
 @keyframes orb{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-20px) scale(1.1)}66%{transform:translate(-20px,15px) scale(.95)}}
 .fu{animation:fadeUp .5s ease both}
-.fi{animation:fadeIn .4s ease both}
 
-/* ── Mobile nav overlay ── */
-.mobile-nav{
-  display:none;
-  position:fixed;inset:0;
-  background:rgba(2,4,8,.97);
-  z-index:200;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:14px;
-}
+.mobile-nav{display:none;position:fixed;inset:0;background:rgba(2,4,8,.98);z-index:200;flex-direction:column;align-items:center;justify-content:center;gap:12px}
 .mobile-nav.open{display:flex}
 
-/* ── Responsive breakpoints ── */
+@media(max-width:900px){
+  .bottom-grid{grid-template-columns:1fr 1fr!important}
+  .bottom-sidebar{display:none!important}
+}
 @media(max-width:768px){
   .nav-tabs{display:none!important}
   .nav-right-full{display:none!important}
@@ -43,16 +33,12 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;over
   .hero-grid{flex-direction:column!important}
   .stats-grid{grid-template-columns:1fr 1fr!important}
   .bottom-grid{grid-template-columns:1fr!important}
-  .roles-grid{grid-template-columns:1fr!important}
+  .roles-grid{grid-template-columns:1fr 1fr!important}
   .tips-grid{grid-template-columns:1fr!important}
   .tips-quick{grid-template-columns:1fr!important}
-  .modal-box{padding:20px!important}
-  .modal-diff{flex-direction:column!important}
 }
-@media(max-width:480px){
-  .stats-grid{grid-template-columns:1fr 1fr!important}
-  .stat-card{padding:12px!important}
-  .hero-pad{padding:20px 16px 60px!important}
+@media(max-width:500px){
+  .roles-grid{grid-template-columns:1fr!important}
 }
 `;
 
@@ -70,6 +56,16 @@ const scoreColor = (s) =>
     : s >= 50
     ? "var(--orange)"
     : "var(--red)";
+const scoreLabel = (s) =>
+  s >= 85
+    ? "Excellent"
+    : s >= 70
+    ? "Strong"
+    : s >= 55
+    ? "Good"
+    : s >= 40
+    ? "Fair"
+    : "Needs Work";
 const fmtDate = (ts) =>
   new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 const fmtTime = (ts) =>
@@ -161,7 +157,6 @@ const TIPS = [
     body: "Review your progress page after each session to find your weak spots.",
   },
 ];
-
 const QUICK_TIPS = [
   "Say 'I' not 'we' — own your contributions",
   "Pause before answering — it shows thoughtfulness",
@@ -170,7 +165,6 @@ const QUICK_TIPS = [
   "Quantify results: 'reduced load time by 40%'",
   "Show enthusiasm — energy matters a lot",
 ];
-
 const DIFFICULTY_INFO = {
   Junior: {
     color: "var(--lime)",
@@ -266,11 +260,36 @@ export default function DashboardPage({
     setShowModal(false);
     onStart(selRole);
   };
-
   const navTo = (tab) => {
     setActiveTab(tab);
     setMobileNavOpen(false);
   };
+
+  const SH = ({ accent, children }) => (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        marginBottom: 18,
+      }}
+    >
+      <div
+        style={{ width: 4, height: 22, background: accent, borderRadius: 2 }}
+      />
+      <span
+        style={{
+          fontFamily: "'JetBrains Mono',monospace",
+          fontSize: 12,
+          color: "var(--muted)",
+          letterSpacing: 3,
+          textTransform: "uppercase",
+        }}
+      >
+        {children}
+      </span>
+    </div>
+  );
 
   return (
     <div
@@ -283,7 +302,7 @@ export default function DashboardPage({
     >
       <style>{G + CSS}</style>
 
-      {/* Background orbs */}
+      {/* Orbs */}
       <div
         style={{
           position: "fixed",
@@ -296,32 +315,32 @@ export default function DashboardPage({
         <div
           style={{
             position: "absolute",
-            width: 600,
-            height: 600,
+            width: 700,
+            height: 700,
             borderRadius: "50%",
             background:
-              "radial-gradient(circle,rgba(0,200,255,.04),transparent 70%)",
-            top: -150,
-            left: -150,
+              "radial-gradient(circle,rgba(0,200,255,.035),transparent 70%)",
+            top: -200,
+            left: -200,
             animation: "orb 22s ease-in-out infinite",
           }}
         />
         <div
           style={{
             position: "absolute",
-            width: 500,
-            height: 500,
+            width: 600,
+            height: 600,
             borderRadius: "50%",
             background:
-              "radial-gradient(circle,rgba(168,85,247,.04),transparent 70%)",
-            bottom: -100,
-            right: -100,
+              "radial-gradient(circle,rgba(168,85,247,.03),transparent 70%)",
+            bottom: -150,
+            right: -150,
             animation: "orb 28s ease-in-out infinite reverse",
           }}
         />
       </div>
 
-      {/* ── Mobile Nav Overlay ── */}
+      {/* Mobile nav */}
       <div className={`mobile-nav${mobileNavOpen ? " open" : ""}`}>
         <button
           onClick={() => setMobileNavOpen(false)}
@@ -332,8 +351,8 @@ export default function DashboardPage({
             background: "var(--surface2)",
             border: "1px solid var(--border2)",
             borderRadius: 8,
-            width: 38,
-            height: 38,
+            width: 40,
+            height: 40,
             cursor: "pointer",
             color: "var(--muted)",
             fontSize: 18,
@@ -345,14 +364,14 @@ export default function DashboardPage({
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 10,
-            marginBottom: 32,
+            gap: 12,
+            marginBottom: 36,
           }}
         >
           <div
             style={{
-              width: 42,
-              height: 42,
+              width: 44,
+              height: 44,
               borderRadius: 12,
               background: "linear-gradient(135deg,#00C8FF,#0066ff)",
               display: "flex",
@@ -366,7 +385,7 @@ export default function DashboardPage({
           <div
             style={{
               fontFamily: "'JetBrains Mono',monospace",
-              fontSize: 13,
+              fontSize: 14,
               color: "var(--cyan)",
               letterSpacing: 2,
             }}
@@ -383,34 +402,34 @@ export default function DashboardPage({
             key={id}
             onClick={() => navTo(id)}
             style={{
-              width: 220,
-              padding: "14px 20px",
+              width: 240,
+              padding: "16px 22px",
               background: activeTab === id ? "var(--surface2)" : "transparent",
               border: `1px solid ${
                 activeTab === id ? "var(--border3)" : "var(--border2)"
               }`,
-              borderRadius: 12,
+              borderRadius: 14,
               cursor: "pointer",
               fontFamily: "'Outfit',sans-serif",
-              fontSize: 15,
+              fontSize: 16,
               color: activeTab === id ? "var(--cyan)" : "var(--muted)",
               display: "flex",
               alignItems: "center",
-              gap: 12,
+              gap: 14,
               transition: "all .2s",
             }}
           >
-            <span style={{ fontSize: 20 }}>{ic}</span>
+            <span style={{ fontSize: 22 }}>{ic}</span>
             {lbl}
           </button>
         ))}
         <div
           style={{
-            marginTop: 16,
+            marginTop: 18,
             display: "flex",
             flexDirection: "column",
             gap: 10,
-            width: 220,
+            width: 240,
           }}
         >
           <button
@@ -422,10 +441,10 @@ export default function DashboardPage({
               background: "rgba(0,200,255,.08)",
               border: "1px solid rgba(0,200,255,.2)",
               borderRadius: 12,
-              padding: "12px 20px",
+              padding: "14px 20px",
               cursor: "pointer",
               fontFamily: "'Outfit',sans-serif",
-              fontSize: 14,
+              fontSize: 15,
               color: "var(--cyan)",
               textAlign: "left",
             }}
@@ -441,10 +460,10 @@ export default function DashboardPage({
               background: "var(--surface)",
               border: "1px solid var(--border2)",
               borderRadius: 12,
-              padding: "12px 20px",
+              padding: "14px 20px",
               cursor: "pointer",
-              fontFamily: "'JetBrains Mono',monospace",
-              fontSize: 12,
+              fontFamily: "'Outfit',sans-serif",
+              fontSize: 15,
               color: "var(--muted)",
               textAlign: "left",
             }}
@@ -454,14 +473,14 @@ export default function DashboardPage({
         </div>
       </div>
 
-      {/* ── Navbar ── */}
+      {/* Navbar */}
       <nav
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "0 24px",
-          height: 64,
+          padding: "0 28px",
+          height: 68,
           background: "rgba(2,4,8,.92)",
           backdropFilter: "blur(20px)",
           borderBottom: "1px solid var(--border2)",
@@ -470,18 +489,17 @@ export default function DashboardPage({
           zIndex: 50,
         }}
       >
-        {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div
             style={{
-              width: 36,
-              height: 36,
+              width: 38,
+              height: 38,
               borderRadius: 10,
               background: "linear-gradient(135deg,#00C8FF,#0066ff)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: 18,
+              fontSize: 20,
               boxShadow: "0 0 20px rgba(0,200,255,.3)",
             }}
           >
@@ -491,7 +509,7 @@ export default function DashboardPage({
             <div
               style={{
                 fontFamily: "'JetBrains Mono',monospace",
-                fontSize: 12,
+                fontSize: 13,
                 color: "var(--cyan)",
                 letterSpacing: 1.5,
               }}
@@ -501,7 +519,7 @@ export default function DashboardPage({
             <div
               style={{
                 fontFamily: "'JetBrains Mono',monospace",
-                fontSize: 8,
+                fontSize: 9,
                 color: "var(--muted)",
                 letterSpacing: 1,
               }}
@@ -510,8 +528,6 @@ export default function DashboardPage({
             </div>
           </div>
         </div>
-
-        {/* Desktop tabs */}
         <div className="nav-tabs" style={{ display: "flex", gap: 4 }}>
           {[
             ["roles", "🎯", "Roles"],
@@ -527,15 +543,15 @@ export default function DashboardPage({
                 border: `1px solid ${
                   activeTab === id ? "var(--border3)" : "transparent"
                 }`,
-                borderRadius: 8,
-                padding: "7px 16px",
+                borderRadius: 9,
+                padding: "8px 18px",
                 cursor: "pointer",
                 fontFamily: "'Outfit',sans-serif",
-                fontSize: 13,
+                fontSize: 14,
                 color: activeTab === id ? "var(--text)" : "var(--muted)",
                 display: "flex",
                 alignItems: "center",
-                gap: 6,
+                gap: 7,
                 transition: "all .2s",
               }}
             >
@@ -544,8 +560,6 @@ export default function DashboardPage({
             </button>
           ))}
         </div>
-
-        {/* Desktop right */}
         <div
           className="nav-right-full"
           style={{ display: "flex", gap: 10, alignItems: "center" }}
@@ -555,11 +569,11 @@ export default function DashboardPage({
             style={{
               background: "rgba(0,200,255,.08)",
               border: "1px solid rgba(0,200,255,.2)",
-              borderRadius: 8,
-              padding: "7px 16px",
+              borderRadius: 9,
+              padding: "8px 18px",
               cursor: "pointer",
               fontFamily: "'Outfit',sans-serif",
-              fontSize: 13,
+              fontSize: 14,
               color: "var(--cyan)",
             }}
           >
@@ -570,11 +584,11 @@ export default function DashboardPage({
             style={{
               background: "var(--surface)",
               border: "1px solid var(--border2)",
-              borderRadius: 8,
-              padding: "7px 14px",
+              borderRadius: 9,
+              padding: "8px 16px",
               cursor: "pointer",
-              fontFamily: "'JetBrains Mono',monospace",
-              fontSize: 11,
+              fontFamily: "'Outfit',sans-serif",
+              fontSize: 13,
               color: "var(--muted)",
             }}
           >
@@ -584,23 +598,23 @@ export default function DashboardPage({
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 9,
-              paddingLeft: 12,
+              gap: 10,
+              paddingLeft: 14,
               borderLeft: "1px solid var(--border2)",
             }}
           >
             <div style={{ position: "relative" }}>
               <div
                 style={{
-                  width: 36,
-                  height: 36,
+                  width: 38,
+                  height: 38,
                   borderRadius: "50%",
                   background: "linear-gradient(135deg,var(--cyan),#0066ff)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   fontWeight: 800,
-                  fontSize: 15,
+                  fontSize: 16,
                   color: "#020408",
                 }}
               >
@@ -611,8 +625,8 @@ export default function DashboardPage({
                   position: "absolute",
                   bottom: 1,
                   right: 1,
-                  width: 9,
-                  height: 9,
+                  width: 10,
+                  height: 10,
                   borderRadius: "50%",
                   background: "var(--lime)",
                   border: "2px solid var(--bg)",
@@ -620,13 +634,13 @@ export default function DashboardPage({
               />
             </div>
             <div>
-              <div style={{ fontWeight: 600, fontSize: 13 }}>
+              <div style={{ fontWeight: 600, fontSize: 14 }}>
                 {user?.name || ""}
               </div>
               <div
                 style={{
                   fontFamily: "'JetBrains Mono',monospace",
-                  fontSize: 9,
+                  fontSize: 10,
                   color: "var(--muted)",
                 }}
               >
@@ -635,8 +649,6 @@ export default function DashboardPage({
             </div>
           </div>
         </div>
-
-        {/* Hamburger (mobile only) */}
         <button
           className="hamburger"
           onClick={() => setMobileNavOpen(true)}
@@ -644,9 +656,9 @@ export default function DashboardPage({
             display: "none",
             background: "var(--surface)",
             border: "1px solid var(--border2)",
-            borderRadius: 8,
-            width: 38,
-            height: 38,
+            borderRadius: 9,
+            width: 40,
+            height: 40,
             cursor: "pointer",
             alignItems: "center",
             justifyContent: "center",
@@ -668,43 +680,41 @@ export default function DashboardPage({
         </button>
       </nav>
 
-      {/* ── Content ── */}
+      {/* Content */}
       <div
-        className="hero-pad"
         style={{
-          maxWidth: 1200,
+          maxWidth: 1240,
           margin: "0 auto",
-          padding: "28px 20px 80px",
+          padding: "36px 24px 100px",
           position: "relative",
           zIndex: 1,
         }}
       >
-        {/* ── Hero ── */}
-        <div className="fu" style={{ marginBottom: 28 }}>
+        {/* Hero */}
+        <div className="fu" style={{ marginBottom: 36 }}>
           <div
             className="hero-grid"
             style={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "flex-start",
-              gap: 24,
+              gap: 28,
             }}
           >
-            {/* Left */}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
                   gap: 10,
-                  marginBottom: 10,
+                  marginBottom: 14,
                 }}
               >
-                <span style={{ fontSize: 22 }}>{greetEmoji}</span>
+                <span style={{ fontSize: 24 }}>{greetEmoji}</span>
                 <span
                   style={{
                     fontFamily: "'JetBrains Mono',monospace",
-                    fontSize: 11,
+                    fontSize: 12,
                     color: "var(--muted)",
                     letterSpacing: 2,
                   }}
@@ -715,9 +725,9 @@ export default function DashboardPage({
               <h1
                 style={{
                   fontWeight: 900,
-                  fontSize: "clamp(22px,4vw,44px)",
-                  lineHeight: 1.05,
-                  marginBottom: 12,
+                  fontSize: "clamp(28px,4.5vw,54px)",
+                  lineHeight: 1.0,
+                  marginBottom: 18,
                 }}
               >
                 Land your{" "}
@@ -737,34 +747,33 @@ export default function DashboardPage({
               <p
                 style={{
                   color: "var(--muted)",
-                  fontSize: 14,
+                  fontSize: 16,
                   maxWidth: 460,
-                  lineHeight: 1.8,
-                  marginBottom: 16,
+                  lineHeight: 1.85,
+                  marginBottom: 22,
                 }}
               >
                 AI-generated questions tailored to your role. Real-time voice
                 analysis, detailed feedback, and progress tracking.
               </p>
-              {/* Quick tip ticker */}
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 10,
+                  gap: 12,
                   background: "var(--surface)",
                   border: "1px solid var(--border2)",
-                  borderRadius: 10,
-                  padding: "9px 14px",
-                  maxWidth: 420,
+                  borderRadius: 12,
+                  padding: "12px 18px",
+                  maxWidth: 440,
                 }}
               >
-                <span style={{ fontSize: 13 }}>💡</span>
+                <span style={{ fontSize: 16 }}>💡</span>
                 <span
                   key={quickTip}
                   style={{
                     fontFamily: "'JetBrains Mono',monospace",
-                    fontSize: 11,
+                    fontSize: 12,
                     color: "var(--cyan)",
                     animation: "slideIn .4s ease both",
                     flex: 1,
@@ -773,16 +782,36 @@ export default function DashboardPage({
                   {QUICK_TIPS[quickTip]}
                 </span>
               </div>
+              {total === 0 && (
+                <button
+                  onClick={() => setActiveTab("roles")}
+                  style={{
+                    marginTop: 22,
+                    background: "linear-gradient(135deg,#00C8FF,#0066ff)",
+                    border: "none",
+                    borderRadius: 14,
+                    padding: "16px 34px",
+                    color: "#020408",
+                    fontFamily: "'Outfit',sans-serif",
+                    fontWeight: 800,
+                    fontSize: 16,
+                    cursor: "pointer",
+                    boxShadow: "0 8px 32px rgba(0,200,255,.35)",
+                  }}
+                >
+                  Start Your First Interview →
+                </button>
+              )}
             </div>
 
-            {/* Stats grid */}
+            {/* Stats */}
             <div
               className="stats-grid"
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
-                gap: 10,
-                minWidth: 240,
+                gap: 12,
+                minWidth: 260,
                 flexShrink: 0,
               }}
             >
@@ -809,24 +838,24 @@ export default function DashboardPage({
               ].map((s, i) => (
                 <div
                   key={s.l}
-                  className="stat-card fu"
+                  className="fu"
                   style={{
-                    animationDelay: `${i * 0.06}s`,
+                    animationDelay: `${i * 0.07}s`,
                     background: "var(--surface)",
                     border: "1px solid var(--border2)",
-                    borderRadius: 14,
-                    padding: "14px 14px",
+                    borderRadius: 18,
+                    padding: "20px 18px",
                   }}
                 >
-                  <div style={{ fontSize: 18, marginBottom: 5 }}>{s.i}</div>
+                  <div style={{ fontSize: 24, marginBottom: 10 }}>{s.i}</div>
                   <div
                     style={{
-                      fontWeight: 800,
-                      fontSize: 22,
+                      fontWeight: 900,
+                      fontSize: 30,
                       color: s.c,
                       fontFamily: "'JetBrains Mono',monospace",
                       lineHeight: 1,
-                      marginBottom: 3,
+                      marginBottom: 4,
                     }}
                   >
                     {s.n}
@@ -834,7 +863,7 @@ export default function DashboardPage({
                   <div
                     style={{
                       fontFamily: "'JetBrains Mono',monospace",
-                      fontSize: 9,
+                      fontSize: 11,
                       color: "var(--muted)",
                       letterSpacing: 1.5,
                       textTransform: "uppercase",
@@ -846,13 +875,12 @@ export default function DashboardPage({
                     <div
                       style={{
                         fontFamily: "'JetBrains Mono',monospace",
-                        fontSize: 9,
+                        fontSize: 10,
                         color: improvement > 0 ? "var(--lime)" : "var(--red)",
-                        marginTop: 3,
+                        marginTop: 5,
                       }}
                     >
-                      {improvement > 0 ? "↑" : "↓"} {Math.abs(improvement)} from
-                      first
+                      {improvement > 0 ? "↑" : "↓"} {Math.abs(improvement)} pts
                     </div>
                   )}
                 </div>
@@ -861,7 +889,7 @@ export default function DashboardPage({
           </div>
         </div>
 
-        {/* Roles practiced badges */}
+        {/* Roles practiced */}
         {rolesUsed.length > 0 && (
           <div
             className="fu"
@@ -869,19 +897,19 @@ export default function DashboardPage({
               animationDelay: ".1s",
               background: "var(--surface)",
               border: "1px solid var(--border2)",
-              borderRadius: 12,
-              padding: "12px 16px",
-              marginBottom: 22,
+              borderRadius: 14,
+              padding: "14px 20px",
+              marginBottom: 28,
               display: "flex",
               alignItems: "center",
-              gap: 10,
+              gap: 12,
               flexWrap: "wrap",
             }}
           >
             <span
               style={{
                 fontFamily: "'JetBrains Mono',monospace",
-                fontSize: 9,
+                fontSize: 10,
                 color: "var(--muted)",
                 letterSpacing: 2,
               }}
@@ -896,18 +924,18 @@ export default function DashboardPage({
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 5,
+                    gap: 6,
                     background: `rgba(${toRgb(m.color)},.08)`,
                     border: `1px solid rgba(${toRgb(m.color)},.2)`,
                     borderRadius: 20,
-                    padding: "3px 10px",
+                    padding: "5px 13px",
                   }}
                 >
-                  <span style={{ fontSize: 12 }}>{m.icon}</span>
+                  <span style={{ fontSize: 14 }}>{m.icon}</span>
                   <span
                     style={{
                       fontFamily: "'JetBrains Mono',monospace",
-                      fontSize: 10,
+                      fontSize: 11,
                       color: m.color,
                     }}
                   >
@@ -920,12 +948,12 @@ export default function DashboardPage({
               <span
                 style={{
                   fontFamily: "'JetBrains Mono',monospace",
-                  fontSize: 9,
+                  fontSize: 10,
                   color: "var(--dim)",
                   marginLeft: "auto",
                 }}
               >
-                {6 - rolesUsed.length} more to explore
+                {6 - rolesUsed.length} more to explore →
               </span>
             )}
           </div>
@@ -934,22 +962,21 @@ export default function DashboardPage({
         {/* ── ROLES TAB ── */}
         {activeTab === "roles" && (
           <div>
-            {/* Header + search */}
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                marginBottom: 16,
+                marginBottom: 22,
                 flexWrap: "wrap",
                 gap: 12,
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div
                   style={{
-                    width: 3,
-                    height: 18,
+                    width: 4,
+                    height: 22,
                     background:
                       "linear-gradient(180deg,var(--cyan),var(--purple))",
                     borderRadius: 2,
@@ -958,9 +985,9 @@ export default function DashboardPage({
                 <span
                   style={{
                     fontFamily: "'JetBrains Mono',monospace",
-                    fontSize: 10,
+                    fontSize: 13,
                     color: "var(--muted)",
-                    letterSpacing: 3,
+                    letterSpacing: 2,
                     textTransform: "uppercase",
                   }}
                 >
@@ -975,22 +1002,22 @@ export default function DashboardPage({
                   style={{
                     background: "var(--surface)",
                     border: "1px solid var(--border2)",
-                    borderRadius: 9,
-                    padding: "8px 14px 8px 34px",
+                    borderRadius: 10,
+                    padding: "10px 16px 10px 38px",
                     fontFamily: "'Outfit',sans-serif",
-                    fontSize: 13,
+                    fontSize: 14,
                     color: "var(--text)",
                     outline: "none",
-                    width: 200,
+                    width: 220,
                   }}
                 />
                 <span
                   style={{
                     position: "absolute",
-                    left: 11,
+                    left: 12,
                     top: "50%",
                     transform: "translateY(-50%)",
-                    fontSize: 13,
+                    fontSize: 14,
                     pointerEvents: "none",
                   }}
                 >
@@ -1004,9 +1031,9 @@ export default function DashboardPage({
               className="roles-grid"
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))",
-                gap: 14,
-                marginBottom: 28,
+                gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))",
+                gap: 16,
+                marginBottom: 36,
               }}
             >
               {filteredRoles.map(([id, r], i) => {
@@ -1027,12 +1054,12 @@ export default function DashboardPage({
                       animationDelay: `${i * 0.06}s`,
                       background: isH ? r.bg : "var(--surface)",
                       border: `1px solid ${isH ? r.color : "var(--border2)"}`,
-                      borderRadius: 18,
-                      padding: "20px 18px",
+                      borderRadius: 20,
+                      padding: "24px 22px",
                       cursor: "pointer",
                       transition: "all .25s",
-                      transform: isH ? "translateY(-4px)" : "translateY(0)",
-                      boxShadow: isH ? `0 12px 40px rgba(${cr},.18)` : "none",
+                      transform: isH ? "translateY(-5px)" : "translateY(0)",
+                      boxShadow: isH ? `0 16px 48px rgba(${cr},.2)` : "none",
                       position: "relative",
                       overflow: "hidden",
                     }}
@@ -1057,20 +1084,20 @@ export default function DashboardPage({
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "flex-start",
-                        marginBottom: 12,
+                        marginBottom: 16,
                       }}
                     >
                       <div
                         style={{
-                          width: 46,
-                          height: 46,
-                          borderRadius: 14,
+                          width: 52,
+                          height: 52,
+                          borderRadius: 16,
                           background: `rgba(${cr},.12)`,
                           border: `1px solid rgba(${cr},.25)`,
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          fontSize: 22,
+                          fontSize: 26,
                         }}
                       >
                         {r.icon}
@@ -1080,18 +1107,18 @@ export default function DashboardPage({
                           display: "flex",
                           flexDirection: "column",
                           alignItems: "flex-end",
-                          gap: 4,
+                          gap: 6,
                         }}
                       >
                         <span
                           style={{
                             fontFamily: "'JetBrains Mono',monospace",
-                            fontSize: 8,
+                            fontSize: 9,
                             color: r.color,
                             background: `rgba(${cr},.1)`,
                             border: `1px solid rgba(${cr},.2)`,
                             borderRadius: 4,
-                            padding: "2px 7px",
+                            padding: "3px 9px",
                             letterSpacing: 1,
                           }}
                         >
@@ -1101,14 +1128,14 @@ export default function DashboardPage({
                           <span
                             style={{
                               fontFamily: "'JetBrains Mono',monospace",
-                              fontSize: 9,
+                              fontSize: 10,
                               color: scoreColor(roleAvg),
                               background: "var(--surface2)",
                               borderRadius: 4,
-                              padding: "2px 7px",
+                              padding: "3px 9px",
                             }}
                           >
-                            avg {roleAvg}%
+                            avg {roleAvg}% — {scoreLabel(roleAvg)}
                           </span>
                         )}
                       </div>
@@ -1116,9 +1143,9 @@ export default function DashboardPage({
                     <div
                       style={{
                         fontWeight: 700,
-                        fontSize: 16,
+                        fontSize: 19,
                         color: isH ? r.color : "var(--text)",
-                        marginBottom: 8,
+                        marginBottom: 10,
                         transition: "color .2s",
                       }}
                     >
@@ -1128,8 +1155,8 @@ export default function DashboardPage({
                       style={{
                         display: "flex",
                         flexWrap: "wrap",
-                        gap: 5,
-                        marginBottom: 12,
+                        gap: 6,
+                        marginBottom: 16,
                       }}
                     >
                       {r.skills.map((s) => (
@@ -1137,7 +1164,7 @@ export default function DashboardPage({
                           key={s}
                           style={{
                             fontFamily: "'JetBrains Mono',monospace",
-                            fontSize: 9,
+                            fontSize: 10,
                             color: isH ? r.color : "var(--muted)",
                             background: isH
                               ? `rgba(${cr},.08)`
@@ -1145,8 +1172,8 @@ export default function DashboardPage({
                             border: `1px solid ${
                               isH ? `rgba(${cr},.2)` : "var(--border)"
                             }`,
-                            borderRadius: 4,
-                            padding: "2px 7px",
+                            borderRadius: 5,
+                            padding: "3px 9px",
                             transition: "all .2s",
                           }}
                         >
@@ -1164,7 +1191,7 @@ export default function DashboardPage({
                       <span
                         style={{
                           fontFamily: "'JetBrains Mono',monospace",
-                          fontSize: 10,
+                          fontSize: 11,
                           color: "var(--muted)",
                         }}
                       >
@@ -1177,9 +1204,10 @@ export default function DashboardPage({
                       <span
                         style={{
                           fontFamily: "'JetBrains Mono',monospace",
-                          fontSize: 11,
+                          fontSize: 12,
                           color: isH ? r.color : "var(--dim)",
                           transition: "color .2s",
+                          fontWeight: isH ? 600 : 400,
                         }}
                       >
                         {isH ? "Start →" : "Practice"}
@@ -1188,8 +1216,8 @@ export default function DashboardPage({
                     {roleAvg !== null && (
                       <div
                         style={{
-                          marginTop: 10,
-                          height: 3,
+                          marginTop: 12,
+                          height: 4,
                           background: "var(--surface2)",
                           borderRadius: 2,
                           overflow: "hidden",
@@ -1216,44 +1244,22 @@ export default function DashboardPage({
               className="bottom-grid"
               style={{
                 display: "grid",
-                gridTemplateColumns: "1fr 1fr 300px",
-                gap: 16,
+                gridTemplateColumns: "1fr 1fr 310px",
+                gap: 20,
                 alignItems: "start",
               }}
             >
-              {/* Recent sessions */}
+              {/* Recent */}
               <div>
                 <div
                   style={{
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    marginBottom: 14,
+                    marginBottom: 18,
                   }}
                 >
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 10 }}
-                  >
-                    <div
-                      style={{
-                        width: 3,
-                        height: 16,
-                        background: "var(--orange)",
-                        borderRadius: 2,
-                      }}
-                    />
-                    <span
-                      style={{
-                        fontFamily: "'JetBrains Mono',monospace",
-                        fontSize: 10,
-                        color: "var(--muted)",
-                        letterSpacing: 2,
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      Recent
-                    </span>
-                  </div>
+                  <SH accent="var(--orange)">Recent Sessions</SH>
                   {total > 4 && (
                     <button
                       onClick={() => setShowAll((s) => !s)}
@@ -1261,12 +1267,12 @@ export default function DashboardPage({
                         background: "none",
                         border: "none",
                         fontFamily: "'JetBrains Mono',monospace",
-                        fontSize: 10,
+                        fontSize: 11,
                         color: "var(--cyan)",
                         cursor: "pointer",
                       }}
                     >
-                      {showAll ? "Less" : "All →"}
+                      {showAll ? "Less" : "View All →"}
                     </button>
                   )}
                 </div>
@@ -1275,15 +1281,15 @@ export default function DashboardPage({
                     style={{
                       background: "var(--surface)",
                       border: "1px solid var(--border2)",
-                      borderRadius: 14,
-                      padding: "28px 18px",
+                      borderRadius: 16,
+                      padding: "36px 20px",
                       textAlign: "center",
                     }}
                   >
                     <div
                       style={{
-                        fontSize: 32,
-                        marginBottom: 10,
+                        fontSize: 36,
+                        marginBottom: 12,
                         animation: "float 3s ease-in-out infinite",
                       }}
                     >
@@ -1292,9 +1298,9 @@ export default function DashboardPage({
                     <p
                       style={{
                         fontFamily: "'JetBrains Mono',monospace",
-                        fontSize: 11,
+                        fontSize: 13,
                         color: "var(--muted)",
-                        lineHeight: 1.8,
+                        lineHeight: 1.9,
                       }}
                     >
                       No sessions yet.
@@ -1314,29 +1320,36 @@ export default function DashboardPage({
                           animationDelay: `${i * 0.05}s`,
                           background: "var(--surface)",
                           border: "1px solid var(--border2)",
-                          borderRadius: 14,
-                          padding: "13px 15px",
-                          marginBottom: 8,
+                          borderRadius: 16,
+                          padding: "16px 18px",
+                          marginBottom: 10,
+                          transition: "border-color .2s",
                         }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.borderColor = meta.color)
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.borderColor = "var(--border2)")
+                        }
                       >
                         <div
                           style={{
                             display: "flex",
                             alignItems: "center",
-                            gap: 10,
+                            gap: 12,
                           }}
                         >
                           <div
                             style={{
-                              width: 34,
-                              height: 34,
-                              borderRadius: 10,
+                              width: 42,
+                              height: 42,
+                              borderRadius: 12,
                               background: `rgba(${cr},.1)`,
                               border: `1px solid rgba(${cr},.2)`,
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              fontSize: 16,
+                              fontSize: 20,
                               flexShrink: 0,
                             }}
                           >
@@ -1346,54 +1359,83 @@ export default function DashboardPage({
                             <div
                               style={{
                                 display: "flex",
-                                gap: 5,
-                                marginBottom: 2,
+                                gap: 6,
+                                marginBottom: 4,
                                 alignItems: "center",
                                 flexWrap: "wrap",
                               }}
                             >
-                              <span style={{ fontWeight: 600, fontSize: 13 }}>
+                              <span style={{ fontWeight: 700, fontSize: 15 }}>
                                 {meta.label}
                               </span>
                               <span
                                 style={{
                                   fontFamily: "'JetBrains Mono',monospace",
-                                  fontSize: 8,
+                                  fontSize: 9,
                                   color: "var(--muted)",
                                   background: "var(--surface2)",
                                   border: "1px solid var(--border2)",
                                   borderRadius: 10,
-                                  padding: "1px 5px",
+                                  padding: "2px 7px",
                                 }}
                               >
                                 {s.difficulty}
                               </span>
+                              {s.usedVoice && (
+                                <span
+                                  style={{
+                                    fontFamily: "'JetBrains Mono',monospace",
+                                    fontSize: 9,
+                                    color: "var(--cyan)",
+                                    background: "rgba(0,200,255,.08)",
+                                    border: "1px solid rgba(0,200,255,.2)",
+                                    borderRadius: 10,
+                                    padding: "2px 7px",
+                                  }}
+                                >
+                                  🎙 Voice
+                                </span>
+                              )}
                             </div>
                             <div
                               style={{
                                 fontFamily: "'JetBrains Mono',monospace",
-                                fontSize: 9,
+                                fontSize: 11,
                                 color: "var(--muted)",
                               }}
                             >
-                              {fmtDate(s.date)} · {s.questionCount}Q
+                              {fmtDate(s.date)} · {s.questionCount} questions
                             </div>
                           </div>
-                          <div
-                            style={{
-                              fontFamily: "'JetBrains Mono',monospace",
-                              fontWeight: 700,
-                              fontSize: 20,
-                              color: scoreColor(s.avgScore),
-                            }}
-                          >
-                            {s.avgScore}
+                          <div style={{ textAlign: "center", flexShrink: 0 }}>
+                            <div
+                              style={{
+                                fontFamily: "'JetBrains Mono',monospace",
+                                fontWeight: 900,
+                                fontSize: 26,
+                                color: scoreColor(s.avgScore),
+                                lineHeight: 1,
+                              }}
+                            >
+                              {s.avgScore}
+                            </div>
+                            <div
+                              style={{
+                                fontFamily: "'JetBrains Mono',monospace",
+                                fontSize: 10,
+                                color: scoreColor(s.avgScore),
+                                marginTop: 2,
+                                opacity: 0.8,
+                              }}
+                            >
+                              {scoreLabel(s.avgScore)}
+                            </div>
                           </div>
                         </div>
                         <div
                           style={{
-                            marginTop: 8,
-                            height: 3,
+                            marginTop: 10,
+                            height: 4,
                             background: "var(--surface2)",
                             borderRadius: 2,
                             overflow: "hidden",
@@ -1405,7 +1447,7 @@ export default function DashboardPage({
                               width: `${s.avgScore}%`,
                               background: scoreColor(s.avgScore),
                               borderRadius: 2,
-                              opacity: 0.6,
+                              opacity: 0.65,
                             }}
                           />
                         </div>
@@ -1417,54 +1459,29 @@ export default function DashboardPage({
 
               {/* By role */}
               <div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    marginBottom: 14,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 3,
-                      height: 16,
-                      background: "var(--purple)",
-                      borderRadius: 2,
-                    }}
-                  />
-                  <span
-                    style={{
-                      fontFamily: "'JetBrains Mono',monospace",
-                      fontSize: 10,
-                      color: "var(--muted)",
-                      letterSpacing: 2,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    By Role
-                  </span>
-                </div>
+                <SH accent="var(--purple)">Performance by Role</SH>
                 <div
                   style={{
                     background: "var(--surface)",
                     border: "1px solid var(--border2)",
-                    borderRadius: 14,
-                    padding: "18px 16px",
+                    borderRadius: 16,
+                    padding: "22px 20px",
                   }}
                 >
                   {rolesUsed.length === 0 ? (
-                    <div style={{ textAlign: "center", padding: "20px 0" }}>
-                      <div style={{ fontSize: 32, marginBottom: 8 }}>📊</div>
+                    <div style={{ textAlign: "center", padding: "28px 0" }}>
+                      <div style={{ fontSize: 36, marginBottom: 10 }}>📊</div>
                       <p
                         style={{
                           fontFamily: "'JetBrains Mono',monospace",
-                          fontSize: 11,
+                          fontSize: 12,
                           color: "var(--muted)",
                           lineHeight: 1.8,
                         }}
                       >
-                        Complete sessions to see performance by role.
+                        Complete sessions
+                        <br />
+                        to see role breakdown.
                       </p>
                     </div>
                   ) : (
@@ -1478,7 +1495,7 @@ export default function DashboardPage({
                         return (
                           <div
                             key={id}
-                            style={{ marginBottom: 14, cursor: "pointer" }}
+                            style={{ marginBottom: 18, cursor: "pointer" }}
                             onClick={() => openModal(id)}
                           >
                             <div
@@ -1486,21 +1503,21 @@ export default function DashboardPage({
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "space-between",
-                                marginBottom: 5,
+                                marginBottom: 7,
                               }}
                             >
                               <div
                                 style={{
                                   display: "flex",
                                   alignItems: "center",
-                                  gap: 7,
+                                  gap: 8,
                                 }}
                               >
-                                <span style={{ fontSize: 14 }}>{r.icon}</span>
+                                <span style={{ fontSize: 16 }}>{r.icon}</span>
                                 <span
                                   style={{
-                                    fontFamily: "'JetBrains Mono',monospace",
-                                    fontSize: 10,
+                                    fontSize: 14,
+                                    fontWeight: 600,
                                     color: "var(--text)",
                                   }}
                                 >
@@ -1509,27 +1526,39 @@ export default function DashboardPage({
                                 <span
                                   style={{
                                     fontFamily: "'JetBrains Mono',monospace",
-                                    fontSize: 8,
+                                    fontSize: 10,
                                     color: "var(--dim)",
                                   }}
                                 >
-                                  {ss.length}x
+                                  {ss.length}×
                                 </span>
                               </div>
-                              <span
-                                style={{
-                                  fontFamily: "'JetBrains Mono',monospace",
-                                  fontSize: 11,
-                                  color: scoreColor(avg),
-                                  fontWeight: 700,
-                                }}
-                              >
-                                {avg}%
-                              </span>
+                              <div style={{ textAlign: "right" }}>
+                                <span
+                                  style={{
+                                    fontFamily: "'JetBrains Mono',monospace",
+                                    fontSize: 14,
+                                    color: scoreColor(avg),
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  {avg}%
+                                </span>
+                                <span
+                                  style={{
+                                    fontFamily: "'JetBrains Mono',monospace",
+                                    fontSize: 11,
+                                    color: "var(--muted)",
+                                    marginLeft: 7,
+                                  }}
+                                >
+                                  {scoreLabel(avg)}
+                                </span>
+                              </div>
                             </div>
                             <div
                               style={{
-                                height: 5,
+                                height: 6,
                                 background: "var(--surface2)",
                                 borderRadius: 3,
                                 overflow: "hidden",
@@ -1542,6 +1571,7 @@ export default function DashboardPage({
                                   background: r.color,
                                   borderRadius: 3,
                                   opacity: 0.8,
+                                  transition: "width 1s ease",
                                 }}
                               />
                             </div>
@@ -1555,43 +1585,16 @@ export default function DashboardPage({
 
               {/* Sidebar */}
               <div
-                style={{ display: "flex", flexDirection: "column", gap: 12 }}
+                className="bottom-sidebar"
+                style={{ display: "flex", flexDirection: "column", gap: 14 }}
               >
-                {/* Tip */}
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    marginBottom: 2,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 3,
-                      height: 16,
-                      background: "var(--lime)",
-                      borderRadius: 2,
-                    }}
-                  />
-                  <span
-                    style={{
-                      fontFamily: "'JetBrains Mono',monospace",
-                      fontSize: 10,
-                      color: "var(--muted)",
-                      letterSpacing: 2,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Tip of the day
-                  </span>
-                </div>
+                <SH accent="var(--lime)">Tip of the Day</SH>
                 <div
                   style={{
                     background: "var(--surface)",
                     border: "1px solid var(--border2)",
-                    borderRadius: 16,
-                    padding: 18,
+                    borderRadius: 18,
+                    padding: 22,
                     position: "relative",
                     overflow: "hidden",
                   }}
@@ -1605,7 +1608,7 @@ export default function DashboardPage({
                       height: 2,
                       background:
                         "linear-gradient(90deg,var(--cyan),var(--purple))",
-                      opacity: 0.5,
+                      opacity: 0.6,
                     }}
                   />
                   <div key={tip} style={{ animation: "slideIn .4s ease both" }}>
@@ -1613,15 +1616,15 @@ export default function DashboardPage({
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: 8,
-                        marginBottom: 8,
+                        gap: 10,
+                        marginBottom: 12,
                       }}
                     >
-                      <span style={{ fontSize: 20 }}>{TIPS[tip].icon}</span>
+                      <span style={{ fontSize: 26 }}>{TIPS[tip].icon}</span>
                       <span
                         style={{
                           fontFamily: "'JetBrains Mono',monospace",
-                          fontSize: 9,
+                          fontSize: 11,
                           color: "var(--cyan)",
                           letterSpacing: 2,
                           textTransform: "uppercase",
@@ -1632,8 +1635,8 @@ export default function DashboardPage({
                     </div>
                     <p
                       style={{
-                        fontSize: 13,
-                        lineHeight: 1.7,
+                        fontSize: 15,
+                        lineHeight: 1.85,
                         color: "var(--muted)",
                       }}
                     >
@@ -1643,8 +1646,8 @@ export default function DashboardPage({
                   <div
                     style={{
                       display: "flex",
-                      gap: 5,
-                      marginTop: 12,
+                      gap: 6,
+                      marginTop: 16,
                       alignItems: "center",
                     }}
                   >
@@ -1656,9 +1659,9 @@ export default function DashboardPage({
                           clearInterval(tipTimer.current);
                         }}
                         style={{
-                          width: i === tip ? 18 : 5,
-                          height: 4,
-                          borderRadius: 2,
+                          width: i === tip ? 22 : 6,
+                          height: 5,
+                          borderRadius: 3,
                           cursor: "pointer",
                           background: i === tip ? "var(--cyan)" : "var(--dim)",
                           transition: "all .3s",
@@ -1668,7 +1671,7 @@ export default function DashboardPage({
                     <span
                       style={{
                         fontFamily: "'JetBrains Mono',monospace",
-                        fontSize: 9,
+                        fontSize: 10,
                         color: "var(--dim)",
                         marginLeft: "auto",
                       }}
@@ -1678,14 +1681,13 @@ export default function DashboardPage({
                   </div>
                 </div>
 
-                {/* Voice AI */}
                 <div
                   style={{
                     background:
                       "linear-gradient(135deg,rgba(0,200,255,.06),rgba(168,85,247,.06))",
                     border: "1px solid rgba(0,200,255,.15)",
-                    borderRadius: 16,
-                    padding: 16,
+                    borderRadius: 18,
+                    padding: 20,
                     animation: "glow 4s ease-in-out infinite",
                   }}
                 >
@@ -1693,21 +1695,21 @@ export default function DashboardPage({
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 8,
-                      marginBottom: 8,
+                      gap: 10,
+                      marginBottom: 12,
                     }}
                   >
                     <div
                       style={{
-                        width: 30,
-                        height: 30,
-                        borderRadius: 9,
+                        width: 36,
+                        height: 36,
+                        borderRadius: 10,
                         background: "rgba(0,200,255,.12)",
                         border: "1px solid rgba(0,200,255,.25)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontSize: 15,
+                        fontSize: 18,
                       }}
                     >
                       🎙
@@ -1716,7 +1718,7 @@ export default function DashboardPage({
                       <div
                         style={{
                           fontWeight: 700,
-                          fontSize: 13,
+                          fontSize: 15,
                           color: "var(--cyan)",
                         }}
                       >
@@ -1725,7 +1727,7 @@ export default function DashboardPage({
                       <div
                         style={{
                           fontFamily: "'JetBrains Mono',monospace",
-                          fontSize: 9,
+                          fontSize: 10,
                           color: "var(--muted)",
                         }}
                       >
@@ -1735,9 +1737,9 @@ export default function DashboardPage({
                   </div>
                   <p
                     style={{
-                      fontSize: 12,
+                      fontSize: 14,
                       color: "var(--muted)",
-                      lineHeight: 1.7,
+                      lineHeight: 1.8,
                     }}
                   >
                     AI speaks questions. Answer verbally for live{" "}
@@ -1746,14 +1748,13 @@ export default function DashboardPage({
                   </p>
                 </div>
 
-                {/* Progress CTA */}
                 <button
                   onClick={onProgress}
                   style={{
                     background: "var(--surface)",
                     border: "1px solid var(--border2)",
-                    borderRadius: 16,
-                    padding: 16,
+                    borderRadius: 18,
+                    padding: 20,
                     cursor: "pointer",
                     textAlign: "left",
                     width: "100%",
@@ -1772,19 +1773,19 @@ export default function DashboardPage({
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 10,
-                      marginBottom: 6,
+                      gap: 12,
+                      marginBottom: 10,
                     }}
                   >
-                    <span style={{ fontSize: 20 }}>📈</span>
-                    <span style={{ fontWeight: 700, fontSize: 13 }}>
+                    <span style={{ fontSize: 24 }}>📈</span>
+                    <span style={{ fontWeight: 700, fontSize: 16 }}>
                       Your Progress
                     </span>
                     <span
                       style={{
                         marginLeft: "auto",
                         color: "var(--purple)",
-                        fontSize: 14,
+                        fontSize: 18,
                       }}
                     >
                       →
@@ -1792,13 +1793,13 @@ export default function DashboardPage({
                   </div>
                   <p
                     style={{
-                      fontSize: 12,
+                      fontSize: 14,
                       color: "var(--muted)",
-                      lineHeight: 1.6,
+                      lineHeight: 1.7,
                     }}
                   >
                     {total > 0
-                      ? `${total} sessions · avg ${avgScore}% · ${rolesUsed.length} roles`
+                      ? `${total} sessions · avg ${avgScore}% · ${rolesUsed.length} roles explored`
                       : "Charts, achievements, and improvement tracking."}
                   </p>
                 </button>
@@ -1814,14 +1815,14 @@ export default function DashboardPage({
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 10,
-                marginBottom: 20,
+                gap: 12,
+                marginBottom: 26,
               }}
             >
               <div
                 style={{
-                  width: 3,
-                  height: 18,
+                  width: 4,
+                  height: 22,
                   background: "var(--orange)",
                   borderRadius: 2,
                 }}
@@ -1829,7 +1830,7 @@ export default function DashboardPage({
               <span
                 style={{
                   fontFamily: "'JetBrains Mono',monospace",
-                  fontSize: 10,
+                  fontSize: 13,
                   color: "var(--muted)",
                   letterSpacing: 3,
                   textTransform: "uppercase",
@@ -1840,12 +1841,12 @@ export default function DashboardPage({
               <span
                 style={{
                   fontFamily: "'JetBrains Mono',monospace",
-                  fontSize: 9,
+                  fontSize: 11,
                   color: "var(--dim)",
                   background: "var(--surface2)",
                   border: "1px solid var(--border2)",
-                  borderRadius: 4,
-                  padding: "2px 7px",
+                  borderRadius: 5,
+                  padding: "3px 10px",
                 }}
               >
                 {total} total
@@ -1855,30 +1856,30 @@ export default function DashboardPage({
               <div
                 style={{
                   textAlign: "center",
-                  padding: "60px 20px",
+                  padding: "70px 20px",
                   background: "var(--surface)",
                   border: "1px solid var(--border2)",
-                  borderRadius: 18,
+                  borderRadius: 20,
                 }}
               >
                 <div
                   style={{
-                    fontSize: 48,
-                    marginBottom: 16,
+                    fontSize: 52,
+                    marginBottom: 18,
                     animation: "float 3s ease-in-out infinite",
                   }}
                 >
                   📋
                 </div>
-                <h3 style={{ fontWeight: 700, fontSize: 20, marginBottom: 10 }}>
+                <h3 style={{ fontWeight: 700, fontSize: 22, marginBottom: 14 }}>
                   No sessions yet
                 </h3>
                 <p
                   style={{
                     color: "var(--muted)",
-                    fontSize: 14,
-                    lineHeight: 1.7,
-                    marginBottom: 20,
+                    fontSize: 15,
+                    lineHeight: 1.8,
+                    marginBottom: 26,
                   }}
                 >
                   Go to the Roles tab and start your first interview.
@@ -1888,12 +1889,12 @@ export default function DashboardPage({
                   style={{
                     background: "linear-gradient(135deg,var(--cyan),#0066ff)",
                     border: "none",
-                    borderRadius: 12,
-                    padding: "12px 24px",
+                    borderRadius: 14,
+                    padding: "14px 30px",
                     color: "#020408",
                     fontFamily: "'Outfit',sans-serif",
                     fontWeight: 700,
-                    fontSize: 14,
+                    fontSize: 15,
                     cursor: "pointer",
                   }}
                 >
@@ -1902,7 +1903,7 @@ export default function DashboardPage({
               </div>
             ) : (
               <div
-                style={{ display: "flex", flexDirection: "column", gap: 10 }}
+                style={{ display: "flex", flexDirection: "column", gap: 12 }}
               >
                 {[...sessionHistory].reverse().map((s, i) => {
                   const meta = ROLE_META[s.role] || ROLE_META.frontend;
@@ -1915,29 +1916,36 @@ export default function DashboardPage({
                         animationDelay: `${i * 0.04}s`,
                         background: "var(--surface)",
                         border: "1px solid var(--border2)",
-                        borderRadius: 16,
-                        padding: "16px 18px",
+                        borderRadius: 18,
+                        padding: "18px 22px",
+                        transition: "border-color .2s",
                       }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.borderColor = meta.color)
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.borderColor = "var(--border2)")
+                      }
                     >
                       <div
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: 12,
+                          gap: 16,
                           flexWrap: "wrap",
                         }}
                       >
                         <div
                           style={{
-                            width: 42,
-                            height: 42,
-                            borderRadius: 12,
+                            width: 48,
+                            height: 48,
+                            borderRadius: 14,
                             background: `rgba(${cr},.1)`,
                             border: `1px solid rgba(${cr},.2)`,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            fontSize: 20,
+                            fontSize: 24,
                             flexShrink: 0,
                           }}
                         >
@@ -1947,24 +1955,24 @@ export default function DashboardPage({
                           <div
                             style={{
                               display: "flex",
-                              gap: 6,
-                              marginBottom: 4,
+                              gap: 8,
+                              marginBottom: 5,
                               flexWrap: "wrap",
                               alignItems: "center",
                             }}
                           >
-                            <span style={{ fontWeight: 600, fontSize: 14 }}>
+                            <span style={{ fontWeight: 700, fontSize: 16 }}>
                               {meta.label}
                             </span>
                             <span
                               style={{
                                 fontFamily: "'JetBrains Mono',monospace",
-                                fontSize: 9,
+                                fontSize: 10,
                                 color: "var(--muted)",
                                 background: "var(--surface2)",
                                 border: "1px solid var(--border2)",
                                 borderRadius: 10,
-                                padding: "2px 8px",
+                                padding: "2px 9px",
                               }}
                             >
                               {s.difficulty}
@@ -1973,12 +1981,12 @@ export default function DashboardPage({
                               <span
                                 style={{
                                   fontFamily: "'JetBrains Mono',monospace",
-                                  fontSize: 9,
+                                  fontSize: 10,
                                   color: "var(--cyan)",
                                   background: "rgba(0,200,255,.08)",
                                   border: "1px solid rgba(0,200,255,.2)",
                                   borderRadius: 10,
-                                  padding: "2px 8px",
+                                  padding: "2px 9px",
                                 }}
                               >
                                 🎙 Voice
@@ -1988,7 +1996,7 @@ export default function DashboardPage({
                           <div
                             style={{
                               fontFamily: "'JetBrains Mono',monospace",
-                              fontSize: 10,
+                              fontSize: 11,
                               color: "var(--muted)",
                             }}
                           >
@@ -1996,12 +2004,12 @@ export default function DashboardPage({
                             {s.questionCount} questions
                           </div>
                         </div>
-                        <div style={{ textAlign: "center", minWidth: 70 }}>
+                        <div style={{ textAlign: "center", minWidth: 85 }}>
                           <div
                             style={{
                               fontFamily: "'JetBrains Mono',monospace",
-                              fontWeight: 700,
-                              fontSize: 26,
+                              fontWeight: 900,
+                              fontSize: 32,
                               color: scoreColor(s.avgScore),
                               lineHeight: 1,
                             }}
@@ -2011,11 +2019,13 @@ export default function DashboardPage({
                           <div
                             style={{
                               fontFamily: "'JetBrains Mono',monospace",
-                              fontSize: 9,
-                              color: "var(--dim)",
+                              fontSize: 11,
+                              color: scoreColor(s.avgScore),
+                              marginTop: 3,
+                              opacity: 0.85,
                             }}
                           >
-                            / 100
+                            {scoreLabel(s.avgScore)}
                           </div>
                         </div>
                         <button
@@ -2027,12 +2037,12 @@ export default function DashboardPage({
                           style={{
                             background: `rgba(${cr},.08)`,
                             border: `1px solid rgba(${cr},.2)`,
-                            borderRadius: 10,
-                            padding: "8px 14px",
+                            borderRadius: 12,
+                            padding: "10px 18px",
                             color: meta.color,
                             fontFamily: "'Outfit',sans-serif",
-                            fontWeight: 600,
-                            fontSize: 12,
+                            fontWeight: 700,
+                            fontSize: 13,
                             cursor: "pointer",
                           }}
                         >
@@ -2041,10 +2051,10 @@ export default function DashboardPage({
                       </div>
                       <div
                         style={{
-                          marginTop: 10,
-                          height: 4,
+                          marginTop: 12,
+                          height: 5,
                           background: "var(--surface2)",
-                          borderRadius: 2,
+                          borderRadius: 3,
                           overflow: "hidden",
                         }}
                       >
@@ -2053,8 +2063,8 @@ export default function DashboardPage({
                             height: "100%",
                             width: `${s.avgScore}%`,
                             background: scoreColor(s.avgScore),
-                            borderRadius: 2,
-                            opacity: 0.6,
+                            borderRadius: 3,
+                            opacity: 0.65,
                           }}
                         />
                       </div>
@@ -2073,14 +2083,14 @@ export default function DashboardPage({
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 10,
-                marginBottom: 20,
+                gap: 12,
+                marginBottom: 26,
               }}
             >
               <div
                 style={{
-                  width: 3,
-                  height: 18,
+                  width: 4,
+                  height: 22,
                   background: "var(--lime)",
                   borderRadius: 2,
                 }}
@@ -2088,7 +2098,7 @@ export default function DashboardPage({
               <span
                 style={{
                   fontFamily: "'JetBrains Mono',monospace",
-                  fontSize: 10,
+                  fontSize: 13,
                   color: "var(--muted)",
                   letterSpacing: 3,
                   textTransform: "uppercase",
@@ -2101,9 +2111,9 @@ export default function DashboardPage({
               className="tips-grid"
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))",
-                gap: 14,
-                marginBottom: 24,
+                gridTemplateColumns: "repeat(auto-fill,minmax(290px,1fr))",
+                gap: 16,
+                marginBottom: 28,
               }}
             >
               {TIPS.map((t, i) => (
@@ -2114,8 +2124,8 @@ export default function DashboardPage({
                     animationDelay: `${i * 0.06}s`,
                     background: "var(--surface)",
                     border: "1px solid var(--border2)",
-                    borderRadius: 16,
-                    padding: 22,
+                    borderRadius: 18,
+                    padding: 28,
                     transition: "all .25s",
                     cursor: "default",
                   }}
@@ -2132,21 +2142,21 @@ export default function DashboardPage({
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 10,
-                      marginBottom: 12,
+                      gap: 12,
+                      marginBottom: 14,
                     }}
                   >
                     <div
                       style={{
-                        width: 38,
-                        height: 38,
-                        borderRadius: 11,
+                        width: 44,
+                        height: 44,
+                        borderRadius: 13,
                         background: "rgba(0,200,255,.08)",
                         border: "1px solid rgba(0,200,255,.15)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontSize: 18,
+                        fontSize: 22,
                       }}
                     >
                       {t.icon}
@@ -2154,7 +2164,7 @@ export default function DashboardPage({
                     <span
                       style={{
                         fontFamily: "'JetBrains Mono',monospace",
-                        fontSize: 10,
+                        fontSize: 11,
                         color: "var(--cyan)",
                         letterSpacing: 2,
                         textTransform: "uppercase",
@@ -2165,9 +2175,9 @@ export default function DashboardPage({
                   </div>
                   <p
                     style={{
-                      fontSize: 14,
+                      fontSize: 15,
                       color: "var(--muted)",
-                      lineHeight: 1.8,
+                      lineHeight: 1.9,
                     }}
                   >
                     {t.body}
@@ -2179,17 +2189,17 @@ export default function DashboardPage({
               style={{
                 background: "var(--surface)",
                 border: "1px solid var(--border2)",
-                borderRadius: 18,
-                padding: 22,
+                borderRadius: 20,
+                padding: 30,
               }}
             >
               <div
                 style={{
                   fontFamily: "'JetBrains Mono',monospace",
-                  fontSize: 10,
+                  fontSize: 12,
                   color: "var(--muted)",
                   letterSpacing: 2,
-                  marginBottom: 16,
+                  marginBottom: 22,
                   textTransform: "uppercase",
                 }}
               >
@@ -2199,8 +2209,8 @@ export default function DashboardPage({
                 className="tips-quick"
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))",
-                  gap: 10,
+                  gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))",
+                  gap: 12,
                 }}
               >
                 {QUICK_TIPS.map((t, i) => (
@@ -2209,16 +2219,16 @@ export default function DashboardPage({
                     style={{
                       display: "flex",
                       alignItems: "flex-start",
-                      gap: 10,
+                      gap: 12,
                       background: "var(--surface2)",
-                      borderRadius: 10,
-                      padding: "10px 14px",
+                      borderRadius: 12,
+                      padding: "14px 16px",
                     }}
                   >
                     <div
                       style={{
-                        width: 20,
-                        height: 20,
+                        width: 26,
+                        height: 26,
                         borderRadius: "50%",
                         background: "rgba(127,255,0,.1)",
                         border: "1px solid rgba(127,255,0,.2)",
@@ -2226,7 +2236,7 @@ export default function DashboardPage({
                         alignItems: "center",
                         justifyContent: "center",
                         fontFamily: "'JetBrains Mono',monospace",
-                        fontSize: 9,
+                        fontSize: 11,
                         color: "var(--lime)",
                         flexShrink: 0,
                         marginTop: 1,
@@ -2236,9 +2246,9 @@ export default function DashboardPage({
                     </div>
                     <p
                       style={{
-                        fontSize: 13,
+                        fontSize: 14,
                         color: "var(--muted)",
-                        lineHeight: 1.6,
+                        lineHeight: 1.75,
                       }}
                     >
                       {t}
@@ -2251,7 +2261,7 @@ export default function DashboardPage({
         )}
       </div>
 
-      {/* ── Modal ── */}
+      {/* ── MODAL ── */}
       {showModal &&
         selRole &&
         (() => {
@@ -2267,13 +2277,13 @@ export default function DashboardPage({
               style={{
                 position: "fixed",
                 inset: 0,
-                background: "rgba(2,4,8,.85)",
-                backdropFilter: "blur(10px)",
+                background: "rgba(2,4,8,.88)",
+                backdropFilter: "blur(12px)",
                 zIndex: 100,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: 16,
+                padding: 20,
                 animation: "fadeIn .2s ease both",
               }}
               onClick={(e) => {
@@ -2281,18 +2291,17 @@ export default function DashboardPage({
               }}
             >
               <div
-                className="modal-box"
                 style={{
                   background: "var(--surface)",
-                  border: `1px solid rgba(${cr},.35)`,
-                  borderRadius: 24,
-                  padding: 28,
-                  maxWidth: 480,
+                  border: `1px solid rgba(${cr},.4)`,
+                  borderRadius: 26,
+                  padding: 32,
+                  maxWidth: 500,
                   width: "100%",
                   position: "relative",
                   animation: "fadeUp .3s ease both",
-                  boxShadow: `0 24px 80px rgba(${cr},.15)`,
-                  maxHeight: "90vh",
+                  boxShadow: `0 28px 80px rgba(${cr},.18)`,
+                  maxHeight: "92vh",
                   overflowY: "auto",
                 }}
               >
@@ -2300,16 +2309,16 @@ export default function DashboardPage({
                   onClick={() => setShowModal(false)}
                   style={{
                     position: "absolute",
-                    top: 14,
-                    right: 14,
+                    top: 16,
+                    right: 16,
                     background: "var(--surface2)",
                     border: "1px solid var(--border2)",
-                    borderRadius: 8,
-                    width: 32,
-                    height: 32,
+                    borderRadius: 9,
+                    width: 36,
+                    height: 36,
                     cursor: "pointer",
                     color: "var(--muted)",
-                    fontSize: 15,
+                    fontSize: 16,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -2317,46 +2326,45 @@ export default function DashboardPage({
                 >
                   ✕
                 </button>
-
                 <div
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 14,
-                    marginBottom: 18,
+                    gap: 16,
+                    marginBottom: 22,
                   }}
                 >
                   <div
                     style={{
-                      width: 52,
-                      height: 52,
-                      borderRadius: 16,
+                      width: 58,
+                      height: 58,
+                      borderRadius: 18,
                       background: `rgba(${cr},.12)`,
                       border: `1px solid rgba(${cr},.3)`,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: 24,
+                      fontSize: 28,
                     }}
                   >
                     {r.icon}
                   </div>
                   <div>
                     <div
-                      style={{ fontWeight: 800, fontSize: 20, marginBottom: 4 }}
+                      style={{ fontWeight: 800, fontSize: 22, marginBottom: 6 }}
                     >
                       {r.label}
                     </div>
-                    <div style={{ display: "flex", gap: 6 }}>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       <span
                         style={{
                           fontFamily: "'JetBrains Mono',monospace",
-                          fontSize: 9,
+                          fontSize: 10,
                           color: r.color,
                           background: `rgba(${cr},.1)`,
                           border: `1px solid rgba(${cr},.2)`,
-                          borderRadius: 4,
-                          padding: "2px 7px",
+                          borderRadius: 5,
+                          padding: "3px 9px",
                         }}
                       >
                         {r.level}
@@ -2365,26 +2373,25 @@ export default function DashboardPage({
                         <span
                           style={{
                             fontFamily: "'JetBrains Mono',monospace",
-                            fontSize: 9,
+                            fontSize: 10,
                             color: scoreColor(roleAvg),
                             background: "var(--surface2)",
-                            borderRadius: 4,
-                            padding: "2px 7px",
+                            borderRadius: 5,
+                            padding: "3px 9px",
                           }}
                         >
-                          Your avg: {roleAvg}%
+                          Your avg: {roleAvg}% — {scoreLabel(roleAvg)}
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
-
                 <div
                   style={{
                     display: "flex",
                     flexWrap: "wrap",
-                    gap: 6,
-                    marginBottom: 18,
+                    gap: 7,
+                    marginBottom: 22,
                   }}
                 >
                   {r.skills.map((s) => (
@@ -2392,36 +2399,32 @@ export default function DashboardPage({
                       key={s}
                       style={{
                         fontFamily: "'JetBrains Mono',monospace",
-                        fontSize: 10,
+                        fontSize: 11,
                         color: r.color,
                         background: `rgba(${cr},.08)`,
                         border: `1px solid rgba(${cr},.2)`,
-                        borderRadius: 6,
-                        padding: "4px 10px",
+                        borderRadius: 7,
+                        padding: "5px 12px",
                       }}
                     >
                       {s}
                     </span>
                   ))}
                 </div>
-
-                <div style={{ marginBottom: 18 }}>
+                <div style={{ marginBottom: 22 }}>
                   <div
                     style={{
                       fontFamily: "'JetBrains Mono',monospace",
-                      fontSize: 9,
+                      fontSize: 11,
                       color: "var(--muted)",
                       letterSpacing: 2,
-                      marginBottom: 10,
+                      marginBottom: 12,
                       textTransform: "uppercase",
                     }}
                   >
                     Select Difficulty
                   </div>
-                  <div
-                    className="modal-diff"
-                    style={{ display: "flex", gap: 8 }}
-                  >
+                  <div style={{ display: "flex", gap: 10 }}>
                     {["Junior", "Mid-Level", "Senior"].map((d) => (
                       <button
                         key={d}
@@ -2435,8 +2438,8 @@ export default function DashboardPage({
                           border: `1.5px solid ${
                             selDiff === d ? r.color : "var(--border2)"
                           }`,
-                          borderRadius: 10,
-                          padding: "10px 6px",
+                          borderRadius: 12,
+                          padding: "12px 8px",
                           cursor: "pointer",
                           transition: "all .2s",
                         }}
@@ -2444,9 +2447,9 @@ export default function DashboardPage({
                         <div
                           style={{
                             fontWeight: 700,
-                            fontSize: 12,
+                            fontSize: 13,
                             color: selDiff === d ? r.color : "var(--muted)",
-                            marginBottom: 2,
+                            marginBottom: 3,
                           }}
                         >
                           {d}
@@ -2454,7 +2457,7 @@ export default function DashboardPage({
                         <div
                           style={{
                             fontFamily: "'JetBrains Mono',monospace",
-                            fontSize: 8,
+                            fontSize: 10,
                             color: "var(--dim)",
                           }}
                         >
@@ -2464,22 +2467,21 @@ export default function DashboardPage({
                     ))}
                   </div>
                 </div>
-
                 <div
                   style={{
                     background: "var(--surface2)",
-                    borderRadius: 12,
-                    padding: 14,
-                    marginBottom: 18,
+                    borderRadius: 14,
+                    padding: 18,
+                    marginBottom: 22,
                   }}
                 >
                   <div
                     style={{
                       fontFamily: "'JetBrains Mono',monospace",
-                      fontSize: 9,
+                      fontSize: 10,
                       color: "var(--muted)",
                       letterSpacing: 2,
-                      marginBottom: 8,
+                      marginBottom: 12,
                       textTransform: "uppercase",
                     }}
                   >
@@ -2495,25 +2497,25 @@ export default function DashboardPage({
                       key={t}
                       style={{
                         display: "flex",
-                        gap: 10,
-                        marginBottom: 6,
+                        gap: 12,
+                        marginBottom: 8,
                         alignItems: "flex-start",
                       }}
                     >
                       <span
                         style={{
                           color: "var(--lime)",
-                          fontSize: 11,
+                          fontSize: 14,
                           marginTop: 1,
                         }}
                       >
                         ✓
                       </span>
                       <div>
-                        <span style={{ fontWeight: 600, fontSize: 12 }}>
+                        <span style={{ fontWeight: 600, fontSize: 14 }}>
                           {t}
                         </span>
-                        <span style={{ fontSize: 12, color: "var(--muted)" }}>
+                        <span style={{ fontSize: 14, color: "var(--muted)" }}>
                           {" "}
                           — {d}
                         </span>
@@ -2521,19 +2523,18 @@ export default function DashboardPage({
                     </div>
                   ))}
                 </div>
-
-                <div style={{ display: "flex", gap: 10 }}>
+                <div style={{ display: "flex", gap: 12 }}>
                   <button
                     onClick={() => setShowModal(false)}
                     style={{
                       flex: 1,
                       background: "transparent",
                       border: "1px solid var(--border2)",
-                      borderRadius: 12,
-                      padding: "13px",
+                      borderRadius: 14,
+                      padding: "14px",
                       color: "var(--muted)",
                       fontFamily: "'Outfit',sans-serif",
-                      fontSize: 14,
+                      fontSize: 15,
                       cursor: "pointer",
                     }}
                   >
@@ -2545,21 +2546,21 @@ export default function DashboardPage({
                       flex: 2,
                       background: `linear-gradient(135deg,${r.color},${r.color}99)`,
                       border: "none",
-                      borderRadius: 12,
-                      padding: "13px",
+                      borderRadius: 14,
+                      padding: "14px",
                       color: "#020408",
                       fontFamily: "'Outfit',sans-serif",
-                      fontWeight: 700,
-                      fontSize: 15,
+                      fontWeight: 800,
+                      fontSize: 16,
                       cursor: "pointer",
-                      boxShadow: `0 4px 24px rgba(${cr},.3)`,
+                      boxShadow: `0 6px 28px rgba(${cr},.35)`,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      gap: 8,
+                      gap: 10,
                     }}
                   >
-                    <span style={{ fontSize: 18 }}>{r.icon}</span> Start
+                    <span style={{ fontSize: 20 }}>{r.icon}</span> Start
                     Interview →
                   </button>
                 </div>
