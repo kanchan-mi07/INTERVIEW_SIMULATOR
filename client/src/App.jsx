@@ -5,11 +5,13 @@ import DashboardPage from "./pages/Dashboard";
 import InterviewPage from "./pages/InterviewPage";
 import ResultsPage from "./pages/ResultsPage";
 import ProgressPage from "./pages/ProgressPage";
+import RolesPage from "./pages/RolesPage";
+import HistoryPage from "./pages/HistoryPage";
+import TipsPage from "./pages/TipsPage";
 
 const API = "https://interview-simulator-1-6glc.onrender.com/api";
 
 export default function App() {
-  // ── Restore user from localStorage on page refresh ───────────────────────
   const savedUser = (() => {
     try {
       const u = localStorage.getItem("auth_user");
@@ -19,10 +21,7 @@ export default function App() {
     }
   })();
 
-  const [page, setPage] = useState(() => {
-    if (savedUser) return "dashboard";
-    return "auth";
-  });
+  const [page, setPage] = useState(() => (savedUser ? "dashboard" : "auth"));
   const [user, setUser] = useState(savedUser);
   const [role, setRole] = useState("frontend");
   const [currentResults, setCurrentResults] = useState([]);
@@ -30,7 +29,6 @@ export default function App() {
   const [sessionHistory, setSessionHistory] = useState([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
 
-  // ── Fetch sessions from MongoDB ──────────────────────────────────────────
   const fetchSessions = useCallback(async () => {
     const token = localStorage.getItem("auth_token");
     if (!token) return;
@@ -60,12 +58,10 @@ export default function App() {
     }
   }, []);
 
-  // Load sessions whenever user logs in
   useEffect(() => {
     if (user) fetchSessions();
   }, [user]);
 
-  // ── Handlers ─────────────────────────────────────────────────────────────
   const handleLogin = (userData) => {
     setUser(userData);
     setPage("dashboard");
@@ -81,7 +77,6 @@ export default function App() {
         results.length
     );
 
-    // ── 1. Add to local state immediately so UI updates right away ──────────
     const newSession = {
       role,
       difficulty: difficulty || currentDifficulty,
@@ -95,7 +90,6 @@ export default function App() {
     setCurrentResults(results);
     setCurrentDifficulty(difficulty || currentDifficulty);
 
-    // ── 2. Save to MongoDB ──────────────────────────────────────────────────
     try {
       const token = localStorage.getItem("auth_token");
       if (token) {
@@ -115,15 +109,11 @@ export default function App() {
             questions: results,
           }),
         });
-
-        // ── 3. Refresh sessions from server so Progress page is in sync ─────
         await fetchSessions();
       }
     } catch (e) {
       console.warn("Could not save session:", e.message);
     }
-
-    // ── 4. Navigate to results ──────────────────────────────────────────────
     setPage("results");
   };
 
@@ -135,10 +125,14 @@ export default function App() {
     setPage("auth");
   };
 
-  // ── Navigate to progress and refresh sessions ────────────────────────────
   const goToProgress = async () => {
-    await fetchSessions(); // always fetch fresh data when opening Progress
+    await fetchSessions();
     setPage("progress");
+  };
+
+  const handleStartRole = (r) => {
+    setRole(r);
+    setPage("interview");
   };
 
   return (
@@ -149,14 +143,32 @@ export default function App() {
         <DashboardPage
           user={user}
           sessionHistory={sessionHistory}
-          onStart={(r) => {
-            setRole(r);
-            setPage("interview");
-          }}
+          onStart={handleStartRole}
           onProgress={goToProgress}
           onLogout={handleLogout}
+          onGoRoles={() => setPage("roles")}
+          onGoHistory={() => setPage("history")}
+          onGoTips={() => setPage("tips")}
         />
       )}
+
+      {page === "roles" && (
+        <RolesPage
+          sessionHistory={sessionHistory}
+          onBack={() => setPage("dashboard")}
+          onStart={handleStartRole}
+        />
+      )}
+
+      {page === "history" && (
+        <HistoryPage
+          sessionHistory={sessionHistory}
+          onBack={() => setPage("dashboard")}
+          onStart={handleStartRole}
+        />
+      )}
+
+      {page === "tips" && <TipsPage onBack={() => setPage("dashboard")} />}
 
       {page === "interview" && (
         <InterviewPage

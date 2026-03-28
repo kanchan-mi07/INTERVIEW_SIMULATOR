@@ -33,12 +33,9 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;over
   .hero-grid{flex-direction:column!important}
   .stats-grid{grid-template-columns:1fr 1fr!important}
   .bottom-grid{grid-template-columns:1fr!important}
-  .roles-grid{grid-template-columns:1fr 1fr!important}
-  .tips-grid{grid-template-columns:1fr!important}
-  .tips-quick{grid-template-columns:1fr!important}
 }
 @media(max-width:500px){
-  .roles-grid{grid-template-columns:1fr!important}
+  .stats-grid{grid-template-columns:1fr 1fr!important}
 }
 `;
 
@@ -68,95 +65,16 @@ const scoreLabel = (s) =>
     : "Needs Work";
 const fmtDate = (ts) =>
   new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-const fmtTime = (ts) =>
-  new Date(ts).toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 
 const ROLE_META = {
-  frontend: {
-    label: "Frontend Dev",
-    icon: "⚡",
-    color: "#00C8FF",
-    bg: "rgba(0,200,255,.06)",
-    skills: ["React", "TypeScript", "CSS", "Performance"],
-    level: "High Demand",
-  },
-  backend: {
-    label: "Backend Dev",
-    icon: "🔩",
-    color: "#FF6030",
-    bg: "rgba(255,96,48,.06)",
-    skills: ["Node.js", "APIs", "Databases", "Security"],
-    level: "High Demand",
-  },
-  fullstack: {
-    label: "Full-Stack",
-    icon: "🚀",
-    color: "#A855F7",
-    bg: "rgba(168,85,247,.06)",
-    skills: ["MERN", "Architecture", "DevOps", "Cloud"],
-    level: "Top Paying",
-  },
-  hr: {
-    label: "HR & Culture",
-    icon: "🤝",
-    color: "#7FFF00",
-    bg: "rgba(127,255,0,.06)",
-    skills: ["Leadership", "Culture Fit", "Communication"],
-    level: "People Skills",
-  },
-  devops: {
-    label: "DevOps / SRE",
-    icon: "⚙️",
-    color: "#FFD700",
-    bg: "rgba(255,215,0,.06)",
-    skills: ["AWS", "Docker", "CI/CD", "Kubernetes"],
-    level: "Cloud Native",
-  },
-  data: {
-    label: "Data Engineer",
-    icon: "📊",
-    color: "#FF69B4",
-    bg: "rgba(255,105,180,.06)",
-    skills: ["Python", "SQL", "Spark", "ML Pipelines"],
-    level: "AI Powered",
-  },
+  frontend: { label: "Frontend Dev", icon: "⚡", color: "#00C8FF" },
+  backend: { label: "Backend Dev", icon: "🔩", color: "#FF6030" },
+  fullstack: { label: "Full-Stack", icon: "🚀", color: "#A855F7" },
+  hr: { label: "HR & Culture", icon: "🤝", color: "#7FFF00" },
+  devops: { label: "DevOps / SRE", icon: "⚙️", color: "#FFD700" },
+  data: { label: "Data Engineer", icon: "📊", color: "#FF69B4" },
 };
 
-const TIPS = [
-  {
-    icon: "🎯",
-    title: "STAR Method",
-    body: "Structure answers as Situation → Task → Action → Result for behavioral questions.",
-  },
-  {
-    icon: "🧠",
-    title: "Research First",
-    body: "Look up the company's tech stack before each session for more relevant answers.",
-  },
-  {
-    icon: "⏱",
-    title: "Stay Concise",
-    body: "Aim for 90-second answers. Clarity beats length every time.",
-  },
-  {
-    icon: "🎙",
-    title: "Voice Analysis",
-    body: "Voice mode tracks confidence, pace, and filler words live as you speak.",
-  },
-  {
-    icon: "💡",
-    title: "Use Examples",
-    body: "Real project examples score 40% higher than theoretical answers.",
-  },
-  {
-    icon: "📈",
-    title: "Track Growth",
-    body: "Review your progress page after each session to find your weak spots.",
-  },
-];
 const QUICK_TIPS = [
   "Say 'I' not 'we' — own your contributions",
   "Pause before answering — it shows thoughtfulness",
@@ -165,23 +83,6 @@ const QUICK_TIPS = [
   "Quantify results: 'reduced load time by 40%'",
   "Show enthusiasm — energy matters a lot",
 ];
-const DIFFICULTY_INFO = {
-  Junior: {
-    color: "var(--lime)",
-    desc: "0–2 years",
-    questions: "Fundamentals & basics",
-  },
-  "Mid-Level": {
-    color: "var(--cyan)",
-    desc: "2–5 years",
-    questions: "Architecture & trade-offs",
-  },
-  Senior: {
-    color: "var(--orange)",
-    desc: "5+ years",
-    questions: "System design & leadership",
-  },
-};
 
 export default function DashboardPage({
   user,
@@ -189,33 +90,20 @@ export default function DashboardPage({
   onStart,
   onProgress,
   onLogout,
+  onGoRoles,
+  onGoHistory,
+  onGoTips,
 }) {
-  const [tip, setTip] = useState(0);
   const [quickTip, setQuickTip] = useState(0);
-  const [hovRole, setHovRole] = useState(null);
-  const [selRole, setSelRole] = useState(null);
-  const [selDiff, setSelDiff] = useState("Mid-Level");
-  const [showModal, setShowModal] = useState(false);
-  const [activeTab, setActiveTab] = useState("roles");
-  const [searchQ, setSearchQ] = useState("");
-  const [showAll, setShowAll] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const tipTimer = useRef(null);
   const quickTimer = useRef(null);
 
   useEffect(() => {
-    tipTimer.current = setInterval(
-      () => setTip((i) => (i + 1) % TIPS.length),
-      5000
-    );
     quickTimer.current = setInterval(
       () => setQuickTip((i) => (i + 1) % QUICK_TIPS.length),
       3000
     );
-    return () => {
-      clearInterval(tipTimer.current);
-      clearInterval(quickTimer.current);
-    };
+    return () => clearInterval(quickTimer.current);
   }, []);
 
   const total = sessionHistory.length;
@@ -230,7 +118,7 @@ export default function DashboardPage({
       ? sessionHistory[total - 1].avgScore - sessionHistory[0].avgScore
       : 0;
   const rolesUsed = [...new Set(sessionHistory.map((s) => s.role))];
-  const recent = [...sessionHistory].reverse().slice(0, showAll ? 999 : 4);
+  const recent = [...sessionHistory].reverse().slice(0, 3);
 
   const firstName = (user?.name || "there").split(" ")[0];
   const initial = (user?.name || "?")[0].toUpperCase();
@@ -246,50 +134,10 @@ export default function DashboardPage({
   const greetEmoji =
     hour < 5 ? "🌙" : hour < 12 ? "☀️" : hour < 17 ? "🌤" : "🌙";
 
-  const filteredRoles = Object.entries(ROLE_META).filter(
-    ([id, r]) =>
-      r.label.toLowerCase().includes(searchQ.toLowerCase()) ||
-      r.skills.some((s) => s.toLowerCase().includes(searchQ.toLowerCase()))
-  );
-
-  const openModal = (id) => {
-    setSelRole(id);
-    setShowModal(true);
-  };
-  const startNow = () => {
-    setShowModal(false);
-    onStart(selRole);
-  };
-  const navTo = (tab) => {
-    setActiveTab(tab);
+  const navTo = (fn) => {
     setMobileNavOpen(false);
+    fn();
   };
-
-  const SH = ({ accent, children }) => (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        marginBottom: 18,
-      }}
-    >
-      <div
-        style={{ width: 4, height: 22, background: accent, borderRadius: 2 }}
-      />
-      <span
-        style={{
-          fontFamily: "'JetBrains Mono',monospace",
-          fontSize: 12,
-          color: "var(--muted)",
-          letterSpacing: 3,
-          textTransform: "uppercase",
-        }}
-      >
-        {children}
-      </span>
-    </div>
-  );
 
   return (
     <div
@@ -340,7 +188,7 @@ export default function DashboardPage({
         />
       </div>
 
-      {/* Mobile nav */}
+      {/* Mobile nav overlay */}
       <div className={`mobile-nav${mobileNavOpen ? " open" : ""}`}>
         <button
           onClick={() => setMobileNavOpen(false)}
@@ -394,25 +242,24 @@ export default function DashboardPage({
           </div>
         </div>
         {[
-          ["roles", "🎯", "Roles"],
-          ["recent", "📋", "History"],
-          ["tips", "💡", "Tips"],
-        ].map(([id, ic, lbl]) => (
+          ["🎯", "Roles", onGoRoles],
+          ["📋", "History", onGoHistory],
+          ["💡", "Tips", onGoTips],
+          ["📊", "Progress", onProgress],
+        ].map(([ic, lbl, fn]) => (
           <button
-            key={id}
-            onClick={() => navTo(id)}
+            key={lbl}
+            onClick={() => navTo(fn)}
             style={{
               width: 240,
               padding: "16px 22px",
-              background: activeTab === id ? "var(--surface2)" : "transparent",
-              border: `1px solid ${
-                activeTab === id ? "var(--border3)" : "var(--border2)"
-              }`,
+              background: "var(--surface)",
+              border: "1px solid var(--border2)",
               borderRadius: 14,
               cursor: "pointer",
               fontFamily: "'Outfit',sans-serif",
               fontSize: 16,
-              color: activeTab === id ? "var(--cyan)" : "var(--muted)",
+              color: "var(--muted)",
               display: "flex",
               alignItems: "center",
               gap: 14,
@@ -423,54 +270,27 @@ export default function DashboardPage({
             {lbl}
           </button>
         ))}
-        <div
+        <button
+          onClick={() => {
+            onLogout();
+            setMobileNavOpen(false);
+          }}
           style={{
-            marginTop: 18,
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
             width: 240,
+            marginTop: 8,
+            padding: "14px 22px",
+            background: "transparent",
+            border: "1px solid var(--border2)",
+            borderRadius: 14,
+            cursor: "pointer",
+            fontFamily: "'Outfit',sans-serif",
+            fontSize: 15,
+            color: "var(--muted)",
+            textAlign: "left",
           }}
         >
-          <button
-            onClick={() => {
-              onProgress();
-              setMobileNavOpen(false);
-            }}
-            style={{
-              background: "rgba(0,200,255,.08)",
-              border: "1px solid rgba(0,200,255,.2)",
-              borderRadius: 12,
-              padding: "14px 20px",
-              cursor: "pointer",
-              fontFamily: "'Outfit',sans-serif",
-              fontSize: 15,
-              color: "var(--cyan)",
-              textAlign: "left",
-            }}
-          >
-            📊 Progress
-          </button>
-          <button
-            onClick={() => {
-              onLogout();
-              setMobileNavOpen(false);
-            }}
-            style={{
-              background: "var(--surface)",
-              border: "1px solid var(--border2)",
-              borderRadius: 12,
-              padding: "14px 20px",
-              cursor: "pointer",
-              fontFamily: "'Outfit',sans-serif",
-              fontSize: 15,
-              color: "var(--muted)",
-              textAlign: "left",
-            }}
-          >
-            Log out
-          </button>
-        </div>
+          Log out
+        </button>
       </div>
 
       {/* Navbar */}
@@ -528,31 +348,40 @@ export default function DashboardPage({
             </div>
           </div>
         </div>
+
+        {/* Desktop nav links — now navigate to separate pages */}
         <div className="nav-tabs" style={{ display: "flex", gap: 4 }}>
           {[
-            ["roles", "🎯", "Roles"],
-            ["recent", "📋", "History"],
-            ["tips", "💡", "Tips"],
-          ].map(([id, ic, lbl]) => (
+            ["🎯", "Roles", onGoRoles],
+            ["📋", "History", onGoHistory],
+            ["💡", "Tips", onGoTips],
+          ].map(([ic, lbl, fn]) => (
             <button
-              key={id}
-              onClick={() => setActiveTab(id)}
+              key={lbl}
+              onClick={fn}
               style={{
-                background:
-                  activeTab === id ? "var(--surface2)" : "transparent",
-                border: `1px solid ${
-                  activeTab === id ? "var(--border3)" : "transparent"
-                }`,
+                background: "transparent",
+                border: "1px solid transparent",
                 borderRadius: 9,
                 padding: "8px 18px",
                 cursor: "pointer",
                 fontFamily: "'Outfit',sans-serif",
                 fontSize: 14,
-                color: activeTab === id ? "var(--text)" : "var(--muted)",
+                color: "var(--muted)",
                 display: "flex",
                 alignItems: "center",
                 gap: 7,
                 transition: "all .2s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "var(--surface2)";
+                e.currentTarget.style.borderColor = "var(--border3)";
+                e.currentTarget.style.color = "var(--text)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.borderColor = "transparent";
+                e.currentTarget.style.color = "var(--muted)";
               }}
             >
               <span>{ic}</span>
@@ -560,6 +389,7 @@ export default function DashboardPage({
             </button>
           ))}
         </div>
+
         <div
           className="nav-right-full"
           style={{ display: "flex", gap: 10, alignItems: "center" }}
@@ -649,6 +479,8 @@ export default function DashboardPage({
             </div>
           </div>
         </div>
+
+        {/* Hamburger */}
         <button
           className="hamburger"
           onClick={() => setMobileNavOpen(true)}
@@ -680,7 +512,7 @@ export default function DashboardPage({
         </button>
       </nav>
 
-      {/* Content */}
+      {/* ── Page content ── */}
       <div
         style={{
           maxWidth: 1240,
@@ -701,6 +533,7 @@ export default function DashboardPage({
               gap: 28,
             }}
           >
+            {/* Left copy */}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div
                 style={{
@@ -756,6 +589,8 @@ export default function DashboardPage({
                 AI-generated questions tailored to your role. Real-time voice
                 analysis, detailed feedback, and progress tracking.
               </p>
+
+              {/* Quick tip ticker */}
               <div
                 style={{
                   display: "flex",
@@ -766,6 +601,7 @@ export default function DashboardPage({
                   borderRadius: 12,
                   padding: "12px 18px",
                   maxWidth: 440,
+                  marginBottom: 24,
                 }}
               >
                 <span style={{ fontSize: 16 }}>💡</span>
@@ -782,26 +618,37 @@ export default function DashboardPage({
                   {QUICK_TIPS[quickTip]}
                 </span>
               </div>
-              {total === 0 && (
-                <button
-                  onClick={() => setActiveTab("roles")}
-                  style={{
-                    marginTop: 22,
-                    background: "linear-gradient(135deg,#00C8FF,#0066ff)",
-                    border: "none",
-                    borderRadius: 14,
-                    padding: "16px 34px",
-                    color: "#020408",
-                    fontFamily: "'Outfit',sans-serif",
-                    fontWeight: 800,
-                    fontSize: 16,
-                    cursor: "pointer",
-                    boxShadow: "0 8px 32px rgba(0,200,255,.35)",
-                  }}
-                >
-                  Start Your First Interview →
-                </button>
-              )}
+
+              {/* ── CTA button — goes to Roles page ── */}
+              <button
+                onClick={onGoRoles}
+                style={{
+                  background: "linear-gradient(135deg,#00C8FF,#0066ff)",
+                  border: "none",
+                  borderRadius: 14,
+                  padding: "17px 36px",
+                  color: "#020408",
+                  fontFamily: "'Outfit',sans-serif",
+                  fontWeight: 800,
+                  fontSize: 17,
+                  cursor: "pointer",
+                  boxShadow: "0 8px 32px rgba(0,200,255,.35)",
+                  transition: "transform .15s,box-shadow .15s",
+                  letterSpacing: 0.3,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 12px 40px rgba(0,200,255,.45)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 32px rgba(0,200,255,.35)";
+                }}
+              >
+                Start Interview →
+              </button>
             </div>
 
             {/* Stats */}
@@ -889,1008 +736,201 @@ export default function DashboardPage({
           </div>
         </div>
 
-        {/* Roles practiced */}
-        {rolesUsed.length > 0 && (
-          <div
-            className="fu"
-            style={{
-              animationDelay: ".1s",
-              background: "var(--surface)",
-              border: "1px solid var(--border2)",
-              borderRadius: 14,
-              padding: "14px 20px",
-              marginBottom: 28,
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              flexWrap: "wrap",
-            }}
-          >
-            <span
+        {/* ── Quick nav cards ── */}
+        <div
+          className="fu"
+          style={{
+            animationDelay: ".1s",
+            display: "grid",
+            gridTemplateColumns: "repeat(3,1fr)",
+            gap: 14,
+            marginBottom: 36,
+          }}
+        >
+          {[
+            {
+              icon: "🎯",
+              label: "Practice Roles",
+              desc: "Choose a role and start practicing",
+              color: "var(--cyan)",
+              fn: onGoRoles,
+            },
+            {
+              icon: "📋",
+              label: "Session History",
+              desc: "Review your past interview sessions",
+              color: "var(--orange)",
+              fn: onGoHistory,
+            },
+            {
+              icon: "💡",
+              label: "Interview Tips",
+              desc: "Strategies to ace your next interview",
+              color: "var(--lime)",
+              fn: onGoTips,
+            },
+          ].map((c, i) => (
+            <button
+              key={c.label}
+              onClick={c.fn}
+              className="fu"
               style={{
-                fontFamily: "'JetBrains Mono',monospace",
-                fontSize: 10,
-                color: "var(--muted)",
-                letterSpacing: 2,
+                animationDelay: `${0.1 + i * 0.06}s`,
+                background: "var(--surface)",
+                border: `1px solid var(--border2)`,
+                borderRadius: 18,
+                padding: "22px 20px",
+                cursor: "pointer",
+                textAlign: "left",
+                transition: "all .22s",
+                color: "var(--text)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = c.color;
+                e.currentTarget.style.background = `rgba(${
+                  toRgb(c.color.replace("var(--", "").replace(")", "")) ===
+                  "cyan"
+                    ? "0,200,255"
+                    : c.color === "var(--orange)"
+                    ? "255,96,48"
+                    : "127,255,0"
+                },.05)`;
+                e.currentTarget.style.transform = "translateY(-3px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "var(--border2)";
+                e.currentTarget.style.background = "var(--surface)";
+                e.currentTarget.style.transform = "translateY(0)";
               }}
             >
-              PRACTICED:
-            </span>
-            {rolesUsed.map((r) => {
-              const m = ROLE_META[r];
-              return m ? (
-                <div
-                  key={r}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    background: `rgba(${toRgb(m.color)},.08)`,
-                    border: `1px solid rgba(${toRgb(m.color)},.2)`,
-                    borderRadius: 20,
-                    padding: "5px 13px",
-                  }}
-                >
-                  <span style={{ fontSize: 14 }}>{m.icon}</span>
-                  <span
-                    style={{
-                      fontFamily: "'JetBrains Mono',monospace",
-                      fontSize: 11,
-                      color: m.color,
-                    }}
-                  >
-                    {m.label}
-                  </span>
-                </div>
-              ) : null;
-            })}
-            {rolesUsed.length < 6 && (
-              <span
+              <div style={{ fontSize: 28, marginBottom: 12 }}>{c.icon}</div>
+              <div
                 style={{
-                  fontFamily: "'JetBrains Mono',monospace",
-                  fontSize: 10,
-                  color: "var(--dim)",
-                  marginLeft: "auto",
+                  fontWeight: 700,
+                  fontSize: 16,
+                  marginBottom: 6,
+                  color: c.color,
                 }}
               >
-                {6 - rolesUsed.length} more to explore →
-              </span>
-            )}
-          </div>
-        )}
+                {c.label}
+              </div>
+              <div
+                style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.6 }}
+              >
+                {c.desc}
+              </div>
+              <div
+                style={{
+                  marginTop: 14,
+                  fontFamily: "'JetBrains Mono',monospace",
+                  fontSize: 11,
+                  color: c.color,
+                  opacity: 0.7,
+                }}
+              >
+                Open →
+              </div>
+            </button>
+          ))}
+        </div>
 
-        {/* ── ROLES TAB ── */}
-        {activeTab === "roles" && (
+        {/* ── Bottom section: Recent sessions + Progress CTA ── */}
+        <div
+          className="bottom-grid"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 320px",
+            gap: 20,
+            alignItems: "start",
+          }}
+        >
+          {/* Recent sessions */}
           <div>
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                marginBottom: 22,
-                flexWrap: "wrap",
-                gap: 12,
+                marginBottom: 18,
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div
                   style={{
                     width: 4,
-                    height: 22,
-                    background:
-                      "linear-gradient(180deg,var(--cyan),var(--purple))",
+                    height: 20,
+                    background: "var(--orange)",
                     borderRadius: 2,
                   }}
                 />
                 <span
                   style={{
                     fontFamily: "'JetBrains Mono',monospace",
-                    fontSize: 13,
+                    fontSize: 12,
                     color: "var(--muted)",
-                    letterSpacing: 2,
+                    letterSpacing: 3,
                     textTransform: "uppercase",
                   }}
                 >
-                  Choose Interview Role
+                  Recent Sessions
                 </span>
               </div>
-              <div style={{ position: "relative" }}>
-                <input
-                  value={searchQ}
-                  onChange={(e) => setSearchQ(e.target.value)}
-                  placeholder="Search roles or skills…"
-                  style={{
-                    background: "var(--surface)",
-                    border: "1px solid var(--border2)",
-                    borderRadius: 10,
-                    padding: "10px 16px 10px 38px",
-                    fontFamily: "'Outfit',sans-serif",
-                    fontSize: 14,
-                    color: "var(--text)",
-                    outline: "none",
-                    width: 220,
-                  }}
-                />
-                <span
-                  style={{
-                    position: "absolute",
-                    left: 12,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    fontSize: 14,
-                    pointerEvents: "none",
-                  }}
-                >
-                  🔍
-                </span>
-              </div>
-            </div>
-
-            {/* Role cards */}
-            <div
-              className="roles-grid"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))",
-                gap: 16,
-                marginBottom: 36,
-              }}
-            >
-              {filteredRoles.map(([id, r], i) => {
-                const isH = hovRole === id;
-                const ss = sessionHistory.filter((s) => s.role === id);
-                const roleAvg =
-                  ss.length > 0
-                    ? Math.round(
-                        ss.reduce((a, s) => a + s.avgScore, 0) / ss.length
-                      )
-                    : null;
-                const cr = toRgb(r.color);
-                return (
-                  <div
-                    key={id}
-                    className="fu"
-                    style={{
-                      animationDelay: `${i * 0.06}s`,
-                      background: isH ? r.bg : "var(--surface)",
-                      border: `1px solid ${isH ? r.color : "var(--border2)"}`,
-                      borderRadius: 20,
-                      padding: "24px 22px",
-                      cursor: "pointer",
-                      transition: "all .25s",
-                      transform: isH ? "translateY(-5px)" : "translateY(0)",
-                      boxShadow: isH ? `0 16px 48px rgba(${cr},.2)` : "none",
-                      position: "relative",
-                      overflow: "hidden",
-                    }}
-                    onMouseEnter={() => setHovRole(id)}
-                    onMouseLeave={() => setHovRole(null)}
-                    onClick={() => openModal(id)}
-                  >
-                    {isH && (
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          height: 2,
-                          background: `linear-gradient(90deg,transparent,${r.color},transparent)`,
-                        }}
-                      />
-                    )}
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        marginBottom: 16,
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 52,
-                          height: 52,
-                          borderRadius: 16,
-                          background: `rgba(${cr},.12)`,
-                          border: `1px solid rgba(${cr},.25)`,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: 26,
-                        }}
-                      >
-                        {r.icon}
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "flex-end",
-                          gap: 6,
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontFamily: "'JetBrains Mono',monospace",
-                            fontSize: 9,
-                            color: r.color,
-                            background: `rgba(${cr},.1)`,
-                            border: `1px solid rgba(${cr},.2)`,
-                            borderRadius: 4,
-                            padding: "3px 9px",
-                            letterSpacing: 1,
-                          }}
-                        >
-                          {r.level}
-                        </span>
-                        {roleAvg !== null && (
-                          <span
-                            style={{
-                              fontFamily: "'JetBrains Mono',monospace",
-                              fontSize: 10,
-                              color: scoreColor(roleAvg),
-                              background: "var(--surface2)",
-                              borderRadius: 4,
-                              padding: "3px 9px",
-                            }}
-                          >
-                            avg {roleAvg}% — {scoreLabel(roleAvg)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        fontWeight: 700,
-                        fontSize: 19,
-                        color: isH ? r.color : "var(--text)",
-                        marginBottom: 10,
-                        transition: "color .2s",
-                      }}
-                    >
-                      {r.label}
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: 6,
-                        marginBottom: 16,
-                      }}
-                    >
-                      {r.skills.map((s) => (
-                        <span
-                          key={s}
-                          style={{
-                            fontFamily: "'JetBrains Mono',monospace",
-                            fontSize: 10,
-                            color: isH ? r.color : "var(--muted)",
-                            background: isH
-                              ? `rgba(${cr},.08)`
-                              : "var(--surface2)",
-                            border: `1px solid ${
-                              isH ? `rgba(${cr},.2)` : "var(--border)"
-                            }`,
-                            borderRadius: 5,
-                            padding: "3px 9px",
-                            transition: "all .2s",
-                          }}
-                        >
-                          {s}
-                        </span>
-                      ))}
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontFamily: "'JetBrains Mono',monospace",
-                          fontSize: 11,
-                          color: "var(--muted)",
-                        }}
-                      >
-                        {ss.length > 0
-                          ? `${ss.length} session${
-                              ss.length !== 1 ? "s" : ""
-                            } done`
-                          : "Not practiced yet"}
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: "'JetBrains Mono',monospace",
-                          fontSize: 12,
-                          color: isH ? r.color : "var(--dim)",
-                          transition: "color .2s",
-                          fontWeight: isH ? 600 : 400,
-                        }}
-                      >
-                        {isH ? "Start →" : "Practice"}
-                      </span>
-                    </div>
-                    {roleAvg !== null && (
-                      <div
-                        style={{
-                          marginTop: 12,
-                          height: 4,
-                          background: "var(--surface2)",
-                          borderRadius: 2,
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div
-                          style={{
-                            height: "100%",
-                            width: `${roleAvg}%`,
-                            background: r.color,
-                            borderRadius: 2,
-                            opacity: 0.7,
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Bottom grid */}
-            <div
-              className="bottom-grid"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr 310px",
-                gap: 20,
-                alignItems: "start",
-              }}
-            >
-              {/* Recent */}
-              <div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginBottom: 18,
-                  }}
-                >
-                  <SH accent="var(--orange)">Recent Sessions</SH>
-                  {total > 4 && (
-                    <button
-                      onClick={() => setShowAll((s) => !s)}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        fontFamily: "'JetBrains Mono',monospace",
-                        fontSize: 11,
-                        color: "var(--cyan)",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {showAll ? "Less" : "View All →"}
-                    </button>
-                  )}
-                </div>
-                {recent.length === 0 ? (
-                  <div
-                    style={{
-                      background: "var(--surface)",
-                      border: "1px solid var(--border2)",
-                      borderRadius: 16,
-                      padding: "36px 20px",
-                      textAlign: "center",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 36,
-                        marginBottom: 12,
-                        animation: "float 3s ease-in-out infinite",
-                      }}
-                    >
-                      🎯
-                    </div>
-                    <p
-                      style={{
-                        fontFamily: "'JetBrains Mono',monospace",
-                        fontSize: 13,
-                        color: "var(--muted)",
-                        lineHeight: 1.9,
-                      }}
-                    >
-                      No sessions yet.
-                      <br />
-                      Pick a role above!
-                    </p>
-                  </div>
-                ) : (
-                  recent.map((s, i) => {
-                    const meta = ROLE_META[s.role] || ROLE_META.frontend;
-                    const cr = toRgb(meta.color);
-                    return (
-                      <div
-                        key={i}
-                        className="fu"
-                        style={{
-                          animationDelay: `${i * 0.05}s`,
-                          background: "var(--surface)",
-                          border: "1px solid var(--border2)",
-                          borderRadius: 16,
-                          padding: "16px 18px",
-                          marginBottom: 10,
-                          transition: "border-color .2s",
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.borderColor = meta.color)
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.borderColor = "var(--border2)")
-                        }
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 12,
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: 42,
-                              height: 42,
-                              borderRadius: 12,
-                              background: `rgba(${cr},.1)`,
-                              border: `1px solid rgba(${cr},.2)`,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: 20,
-                              flexShrink: 0,
-                            }}
-                          >
-                            {meta.icon}
-                          </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div
-                              style={{
-                                display: "flex",
-                                gap: 6,
-                                marginBottom: 4,
-                                alignItems: "center",
-                                flexWrap: "wrap",
-                              }}
-                            >
-                              <span style={{ fontWeight: 700, fontSize: 15 }}>
-                                {meta.label}
-                              </span>
-                              <span
-                                style={{
-                                  fontFamily: "'JetBrains Mono',monospace",
-                                  fontSize: 9,
-                                  color: "var(--muted)",
-                                  background: "var(--surface2)",
-                                  border: "1px solid var(--border2)",
-                                  borderRadius: 10,
-                                  padding: "2px 7px",
-                                }}
-                              >
-                                {s.difficulty}
-                              </span>
-                              {s.usedVoice && (
-                                <span
-                                  style={{
-                                    fontFamily: "'JetBrains Mono',monospace",
-                                    fontSize: 9,
-                                    color: "var(--cyan)",
-                                    background: "rgba(0,200,255,.08)",
-                                    border: "1px solid rgba(0,200,255,.2)",
-                                    borderRadius: 10,
-                                    padding: "2px 7px",
-                                  }}
-                                >
-                                  🎙 Voice
-                                </span>
-                              )}
-                            </div>
-                            <div
-                              style={{
-                                fontFamily: "'JetBrains Mono',monospace",
-                                fontSize: 11,
-                                color: "var(--muted)",
-                              }}
-                            >
-                              {fmtDate(s.date)} · {s.questionCount} questions
-                            </div>
-                          </div>
-                          <div style={{ textAlign: "center", flexShrink: 0 }}>
-                            <div
-                              style={{
-                                fontFamily: "'JetBrains Mono',monospace",
-                                fontWeight: 900,
-                                fontSize: 26,
-                                color: scoreColor(s.avgScore),
-                                lineHeight: 1,
-                              }}
-                            >
-                              {s.avgScore}
-                            </div>
-                            <div
-                              style={{
-                                fontFamily: "'JetBrains Mono',monospace",
-                                fontSize: 10,
-                                color: scoreColor(s.avgScore),
-                                marginTop: 2,
-                                opacity: 0.8,
-                              }}
-                            >
-                              {scoreLabel(s.avgScore)}
-                            </div>
-                          </div>
-                        </div>
-                        <div
-                          style={{
-                            marginTop: 10,
-                            height: 4,
-                            background: "var(--surface2)",
-                            borderRadius: 2,
-                            overflow: "hidden",
-                          }}
-                        >
-                          <div
-                            style={{
-                              height: "100%",
-                              width: `${s.avgScore}%`,
-                              background: scoreColor(s.avgScore),
-                              borderRadius: 2,
-                              opacity: 0.65,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-
-              {/* By role */}
-              <div>
-                <SH accent="var(--purple)">Performance by Role</SH>
-                <div
-                  style={{
-                    background: "var(--surface)",
-                    border: "1px solid var(--border2)",
-                    borderRadius: 16,
-                    padding: "22px 20px",
-                  }}
-                >
-                  {rolesUsed.length === 0 ? (
-                    <div style={{ textAlign: "center", padding: "28px 0" }}>
-                      <div style={{ fontSize: 36, marginBottom: 10 }}>📊</div>
-                      <p
-                        style={{
-                          fontFamily: "'JetBrains Mono',monospace",
-                          fontSize: 12,
-                          color: "var(--muted)",
-                          lineHeight: 1.8,
-                        }}
-                      >
-                        Complete sessions
-                        <br />
-                        to see role breakdown.
-                      </p>
-                    </div>
-                  ) : (
-                    Object.entries(ROLE_META)
-                      .map(([id, r]) => {
-                        const ss = sessionHistory.filter((s) => s.role === id);
-                        if (ss.length === 0) return null;
-                        const avg = Math.round(
-                          ss.reduce((a, s) => a + s.avgScore, 0) / ss.length
-                        );
-                        return (
-                          <div
-                            key={id}
-                            style={{ marginBottom: 18, cursor: "pointer" }}
-                            onClick={() => openModal(id)}
-                          >
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                marginBottom: 7,
-                              }}
-                            >
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 8,
-                                }}
-                              >
-                                <span style={{ fontSize: 16 }}>{r.icon}</span>
-                                <span
-                                  style={{
-                                    fontSize: 14,
-                                    fontWeight: 600,
-                                    color: "var(--text)",
-                                  }}
-                                >
-                                  {r.label}
-                                </span>
-                                <span
-                                  style={{
-                                    fontFamily: "'JetBrains Mono',monospace",
-                                    fontSize: 10,
-                                    color: "var(--dim)",
-                                  }}
-                                >
-                                  {ss.length}×
-                                </span>
-                              </div>
-                              <div style={{ textAlign: "right" }}>
-                                <span
-                                  style={{
-                                    fontFamily: "'JetBrains Mono',monospace",
-                                    fontSize: 14,
-                                    color: scoreColor(avg),
-                                    fontWeight: 700,
-                                  }}
-                                >
-                                  {avg}%
-                                </span>
-                                <span
-                                  style={{
-                                    fontFamily: "'JetBrains Mono',monospace",
-                                    fontSize: 11,
-                                    color: "var(--muted)",
-                                    marginLeft: 7,
-                                  }}
-                                >
-                                  {scoreLabel(avg)}
-                                </span>
-                              </div>
-                            </div>
-                            <div
-                              style={{
-                                height: 6,
-                                background: "var(--surface2)",
-                                borderRadius: 3,
-                                overflow: "hidden",
-                              }}
-                            >
-                              <div
-                                style={{
-                                  height: "100%",
-                                  width: `${avg}%`,
-                                  background: r.color,
-                                  borderRadius: 3,
-                                  opacity: 0.8,
-                                  transition: "width 1s ease",
-                                }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })
-                      .filter(Boolean)
-                  )}
-                </div>
-              </div>
-
-              {/* Sidebar */}
-              <div
-                className="bottom-sidebar"
-                style={{ display: "flex", flexDirection: "column", gap: 14 }}
-              >
-                <SH accent="var(--lime)">Tip of the Day</SH>
-                <div
-                  style={{
-                    background: "var(--surface)",
-                    border: "1px solid var(--border2)",
-                    borderRadius: 18,
-                    padding: 22,
-                    position: "relative",
-                    overflow: "hidden",
-                  }}
-                >
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      height: 2,
-                      background:
-                        "linear-gradient(90deg,var(--cyan),var(--purple))",
-                      opacity: 0.6,
-                    }}
-                  />
-                  <div key={tip} style={{ animation: "slideIn .4s ease both" }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        marginBottom: 12,
-                      }}
-                    >
-                      <span style={{ fontSize: 26 }}>{TIPS[tip].icon}</span>
-                      <span
-                        style={{
-                          fontFamily: "'JetBrains Mono',monospace",
-                          fontSize: 11,
-                          color: "var(--cyan)",
-                          letterSpacing: 2,
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        {TIPS[tip].title}
-                      </span>
-                    </div>
-                    <p
-                      style={{
-                        fontSize: 15,
-                        lineHeight: 1.85,
-                        color: "var(--muted)",
-                      }}
-                    >
-                      {TIPS[tip].body}
-                    </p>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 6,
-                      marginTop: 16,
-                      alignItems: "center",
-                    }}
-                  >
-                    {TIPS.map((_, i) => (
-                      <div
-                        key={i}
-                        onClick={() => {
-                          setTip(i);
-                          clearInterval(tipTimer.current);
-                        }}
-                        style={{
-                          width: i === tip ? 22 : 6,
-                          height: 5,
-                          borderRadius: 3,
-                          cursor: "pointer",
-                          background: i === tip ? "var(--cyan)" : "var(--dim)",
-                          transition: "all .3s",
-                        }}
-                      />
-                    ))}
-                    <span
-                      style={{
-                        fontFamily: "'JetBrains Mono',monospace",
-                        fontSize: 10,
-                        color: "var(--dim)",
-                        marginLeft: "auto",
-                      }}
-                    >
-                      {tip + 1}/{TIPS.length}
-                    </span>
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    background:
-                      "linear-gradient(135deg,rgba(0,200,255,.06),rgba(168,85,247,.06))",
-                    border: "1px solid rgba(0,200,255,.15)",
-                    borderRadius: 18,
-                    padding: 20,
-                    animation: "glow 4s ease-in-out infinite",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      marginBottom: 12,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 10,
-                        background: "rgba(0,200,255,.12)",
-                        border: "1px solid rgba(0,200,255,.25)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 18,
-                      }}
-                    >
-                      🎙
-                    </div>
-                    <div>
-                      <div
-                        style={{
-                          fontWeight: 700,
-                          fontSize: 15,
-                          color: "var(--cyan)",
-                        }}
-                      >
-                        Voice AI Active
-                      </div>
-                      <div
-                        style={{
-                          fontFamily: "'JetBrains Mono',monospace",
-                          fontSize: 10,
-                          color: "var(--muted)",
-                        }}
-                      >
-                        Chrome / Edge only
-                      </div>
-                    </div>
-                  </div>
-                  <p
-                    style={{
-                      fontSize: 14,
-                      color: "var(--muted)",
-                      lineHeight: 1.8,
-                    }}
-                  >
-                    AI speaks questions. Answer verbally for live{" "}
-                    <b style={{ color: "var(--text)" }}>confidence</b> and{" "}
-                    <b style={{ color: "var(--text)" }}>pace</b> scoring.
-                  </p>
-                </div>
-
+              {total > 3 && (
                 <button
-                  onClick={onProgress}
+                  onClick={onGoHistory}
                   style={{
-                    background: "var(--surface)",
-                    border: "1px solid var(--border2)",
-                    borderRadius: 18,
-                    padding: 20,
+                    background: "none",
+                    border: "none",
+                    fontFamily: "'JetBrains Mono',monospace",
+                    fontSize: 11,
+                    color: "var(--cyan)",
                     cursor: "pointer",
-                    textAlign: "left",
-                    width: "100%",
-                    transition: "all .2s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "var(--purple)";
-                    e.currentTarget.style.background = "rgba(168,85,247,.05)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "var(--border2)";
-                    e.currentTarget.style.background = "var(--surface)";
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
-                      marginBottom: 10,
-                    }}
-                  >
-                    <span style={{ fontSize: 24 }}>📈</span>
-                    <span style={{ fontWeight: 700, fontSize: 16 }}>
-                      Your Progress
-                    </span>
-                    <span
-                      style={{
-                        marginLeft: "auto",
-                        color: "var(--purple)",
-                        fontSize: 18,
-                      }}
-                    >
-                      →
-                    </span>
-                  </div>
-                  <p
-                    style={{
-                      fontSize: 14,
-                      color: "var(--muted)",
-                      lineHeight: 1.7,
-                    }}
-                  >
-                    {total > 0
-                      ? `${total} sessions · avg ${avgScore}% · ${rolesUsed.length} roles explored`
-                      : "Charts, achievements, and improvement tracking."}
-                  </p>
+                  View All →
                 </button>
-              </div>
+              )}
             </div>
-          </div>
-        )}
 
-        {/* ── HISTORY TAB ── */}
-        {activeTab === "recent" && (
-          <div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                marginBottom: 26,
-              }}
-            >
+            {recent.length === 0 ? (
               <div
                 style={{
-                  width: 4,
-                  height: 22,
-                  background: "var(--orange)",
-                  borderRadius: 2,
-                }}
-              />
-              <span
-                style={{
-                  fontFamily: "'JetBrains Mono',monospace",
-                  fontSize: 13,
-                  color: "var(--muted)",
-                  letterSpacing: 3,
-                  textTransform: "uppercase",
-                }}
-              >
-                Session History
-              </span>
-              <span
-                style={{
-                  fontFamily: "'JetBrains Mono',monospace",
-                  fontSize: 11,
-                  color: "var(--dim)",
-                  background: "var(--surface2)",
-                  border: "1px solid var(--border2)",
-                  borderRadius: 5,
-                  padding: "3px 10px",
-                }}
-              >
-                {total} total
-              </span>
-            </div>
-            {total === 0 ? (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "70px 20px",
                   background: "var(--surface)",
                   border: "1px solid var(--border2)",
-                  borderRadius: 20,
+                  borderRadius: 18,
+                  padding: "44px 24px",
+                  textAlign: "center",
                 }}
               >
                 <div
                   style={{
-                    fontSize: 52,
-                    marginBottom: 18,
+                    fontSize: 44,
+                    marginBottom: 14,
                     animation: "float 3s ease-in-out infinite",
                   }}
                 >
-                  📋
+                  🎯
                 </div>
-                <h3 style={{ fontWeight: 700, fontSize: 22, marginBottom: 14 }}>
+                <h3 style={{ fontWeight: 700, fontSize: 20, marginBottom: 10 }}>
                   No sessions yet
                 </h3>
                 <p
                   style={{
                     color: "var(--muted)",
                     fontSize: 15,
-                    lineHeight: 1.8,
-                    marginBottom: 26,
+                    lineHeight: 1.75,
+                    marginBottom: 22,
                   }}
                 >
-                  Go to the Roles tab and start your first interview.
+                  Start your first interview to see your results here.
                 </p>
                 <button
-                  onClick={() => setActiveTab("roles")}
+                  onClick={onGoRoles}
                   style={{
                     background: "linear-gradient(135deg,var(--cyan),#0066ff)",
                     border: "none",
-                    borderRadius: 14,
-                    padding: "14px 30px",
+                    borderRadius: 12,
+                    padding: "13px 26px",
                     color: "#020408",
                     fontFamily: "'Outfit',sans-serif",
                     fontWeight: 700,
@@ -1898,676 +938,341 @@ export default function DashboardPage({
                     cursor: "pointer",
                   }}
                 >
-                  Start First Interview →
+                  Pick a Role →
                 </button>
               </div>
             ) : (
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: 12 }}
-              >
-                {[...sessionHistory].reverse().map((s, i) => {
-                  const meta = ROLE_META[s.role] || ROLE_META.frontend;
-                  const cr = toRgb(meta.color);
-                  return (
+              recent.map((s, i) => {
+                const meta = ROLE_META[s.role] || ROLE_META.frontend;
+                const cr = toRgb(meta.color);
+                return (
+                  <div
+                    key={i}
+                    className="fu"
+                    style={{
+                      animationDelay: `${i * 0.05}s`,
+                      background: "var(--surface)",
+                      border: "1px solid var(--border2)",
+                      borderRadius: 16,
+                      padding: "18px 20px",
+                      marginBottom: 12,
+                      transition: "border-color .2s",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.borderColor = meta.color)
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.borderColor = "var(--border2)")
+                    }
+                  >
                     <div
-                      key={i}
-                      className="fu"
-                      style={{
-                        animationDelay: `${i * 0.04}s`,
-                        background: "var(--surface)",
-                        border: "1px solid var(--border2)",
-                        borderRadius: 18,
-                        padding: "18px 22px",
-                        transition: "border-color .2s",
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.borderColor = meta.color)
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.borderColor = "var(--border2)")
-                      }
+                      style={{ display: "flex", alignItems: "center", gap: 14 }}
                     >
                       <div
                         style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: 13,
+                          background: `rgba(${cr},.1)`,
+                          border: `1px solid rgba(${cr},.2)`,
                           display: "flex",
                           alignItems: "center",
-                          gap: 16,
-                          flexWrap: "wrap",
+                          justifyContent: "center",
+                          fontSize: 22,
+                          flexShrink: 0,
                         }}
                       >
+                        {meta.icon}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
                         <div
                           style={{
-                            width: 48,
-                            height: 48,
-                            borderRadius: 14,
-                            background: `rgba(${cr},.1)`,
-                            border: `1px solid rgba(${cr},.2)`,
                             display: "flex",
+                            gap: 7,
+                            marginBottom: 5,
                             alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: 24,
-                            flexShrink: 0,
+                            flexWrap: "wrap",
                           }}
                         >
-                          {meta.icon}
-                        </div>
-                        <div style={{ flex: 1, minWidth: 120 }}>
-                          <div
+                          <span style={{ fontWeight: 700, fontSize: 16 }}>
+                            {meta.label}
+                          </span>
+                          <span
                             style={{
-                              display: "flex",
-                              gap: 8,
-                              marginBottom: 5,
-                              flexWrap: "wrap",
-                              alignItems: "center",
+                              fontFamily: "'JetBrains Mono',monospace",
+                              fontSize: 10,
+                              color: "var(--muted)",
+                              background: "var(--surface2)",
+                              border: "1px solid var(--border2)",
+                              borderRadius: 10,
+                              padding: "2px 8px",
                             }}
                           >
-                            <span style={{ fontWeight: 700, fontSize: 16 }}>
-                              {meta.label}
-                            </span>
+                            {s.difficulty}
+                          </span>
+                          {s.usedVoice && (
                             <span
                               style={{
                                 fontFamily: "'JetBrains Mono',monospace",
                                 fontSize: 10,
-                                color: "var(--muted)",
-                                background: "var(--surface2)",
-                                border: "1px solid var(--border2)",
+                                color: "var(--cyan)",
+                                background: "rgba(0,200,255,.08)",
+                                border: "1px solid rgba(0,200,255,.2)",
                                 borderRadius: 10,
-                                padding: "2px 9px",
+                                padding: "2px 8px",
                               }}
                             >
-                              {s.difficulty}
+                              🎙 Voice
                             </span>
-                            {s.usedVoice && (
-                              <span
-                                style={{
-                                  fontFamily: "'JetBrains Mono',monospace",
-                                  fontSize: 10,
-                                  color: "var(--cyan)",
-                                  background: "rgba(0,200,255,.08)",
-                                  border: "1px solid rgba(0,200,255,.2)",
-                                  borderRadius: 10,
-                                  padding: "2px 9px",
-                                }}
-                              >
-                                🎙 Voice
-                              </span>
-                            )}
-                          </div>
-                          <div
-                            style={{
-                              fontFamily: "'JetBrains Mono',monospace",
-                              fontSize: 11,
-                              color: "var(--muted)",
-                            }}
-                          >
-                            {fmtDate(s.date)} at {fmtTime(s.date)} ·{" "}
-                            {s.questionCount} questions
-                          </div>
+                          )}
                         </div>
-                        <div style={{ textAlign: "center", minWidth: 85 }}>
-                          <div
-                            style={{
-                              fontFamily: "'JetBrains Mono',monospace",
-                              fontWeight: 900,
-                              fontSize: 32,
-                              color: scoreColor(s.avgScore),
-                              lineHeight: 1,
-                            }}
-                          >
-                            {s.avgScore}
-                          </div>
-                          <div
-                            style={{
-                              fontFamily: "'JetBrains Mono',monospace",
-                              fontSize: 11,
-                              color: scoreColor(s.avgScore),
-                              marginTop: 3,
-                              opacity: 0.85,
-                            }}
-                          >
-                            {scoreLabel(s.avgScore)}
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => {
-                            setSelRole(s.role);
-                            setSelDiff(s.difficulty);
-                            setShowModal(true);
-                          }}
-                          style={{
-                            background: `rgba(${cr},.08)`,
-                            border: `1px solid rgba(${cr},.2)`,
-                            borderRadius: 12,
-                            padding: "10px 18px",
-                            color: meta.color,
-                            fontFamily: "'Outfit',sans-serif",
-                            fontWeight: 700,
-                            fontSize: 13,
-                            cursor: "pointer",
-                          }}
-                        >
-                          Retry →
-                        </button>
-                      </div>
-                      <div
-                        style={{
-                          marginTop: 12,
-                          height: 5,
-                          background: "var(--surface2)",
-                          borderRadius: 3,
-                          overflow: "hidden",
-                        }}
-                      >
                         <div
                           style={{
-                            height: "100%",
-                            width: `${s.avgScore}%`,
-                            background: scoreColor(s.avgScore),
-                            borderRadius: 3,
-                            opacity: 0.65,
+                            fontFamily: "'JetBrains Mono',monospace",
+                            fontSize: 11,
+                            color: "var(--muted)",
                           }}
-                        />
+                        >
+                          {fmtDate(s.date)} · {s.questionCount} questions
+                        </div>
+                      </div>
+                      <div style={{ textAlign: "center", flexShrink: 0 }}>
+                        <div
+                          style={{
+                            fontFamily: "'JetBrains Mono',monospace",
+                            fontWeight: 900,
+                            fontSize: 28,
+                            color: scoreColor(s.avgScore),
+                            lineHeight: 1,
+                          }}
+                        >
+                          {s.avgScore}
+                        </div>
+                        <div
+                          style={{
+                            fontFamily: "'JetBrains Mono',monospace",
+                            fontSize: 11,
+                            color: scoreColor(s.avgScore),
+                            marginTop: 3,
+                            opacity: 0.85,
+                          }}
+                        >
+                          {scoreLabel(s.avgScore)}
+                        </div>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── TIPS TAB ── */}
-        {activeTab === "tips" && (
-          <div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                marginBottom: 26,
-              }}
-            >
-              <div
-                style={{
-                  width: 4,
-                  height: 22,
-                  background: "var(--lime)",
-                  borderRadius: 2,
-                }}
-              />
-              <span
-                style={{
-                  fontFamily: "'JetBrains Mono',monospace",
-                  fontSize: 13,
-                  color: "var(--muted)",
-                  letterSpacing: 3,
-                  textTransform: "uppercase",
-                }}
-              >
-                Interview Tips & Strategy
-              </span>
-            </div>
-            <div
-              className="tips-grid"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill,minmax(290px,1fr))",
-                gap: 16,
-                marginBottom: 28,
-              }}
-            >
-              {TIPS.map((t, i) => (
-                <div
-                  key={i}
-                  className="fu"
-                  style={{
-                    animationDelay: `${i * 0.06}s`,
-                    background: "var(--surface)",
-                    border: "1px solid var(--border2)",
-                    borderRadius: 18,
-                    padding: 28,
-                    transition: "all .25s",
-                    cursor: "default",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "var(--cyan)";
-                    e.currentTarget.style.background = "rgba(0,200,255,.03)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "var(--border2)";
-                    e.currentTarget.style.background = "var(--surface)";
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
-                      marginBottom: 14,
-                    }}
-                  >
                     <div
                       style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 13,
-                        background: "rgba(0,200,255,.08)",
-                        border: "1px solid rgba(0,200,255,.15)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 22,
+                        marginTop: 12,
+                        height: 4,
+                        background: "var(--surface2)",
+                        borderRadius: 2,
+                        overflow: "hidden",
                       }}
                     >
-                      {t.icon}
+                      <div
+                        style={{
+                          height: "100%",
+                          width: `${s.avgScore}%`,
+                          background: scoreColor(s.avgScore),
+                          borderRadius: 2,
+                          opacity: 0.65,
+                        }}
+                      />
                     </div>
-                    <span
-                      style={{
-                        fontFamily: "'JetBrains Mono',monospace",
-                        fontSize: 11,
-                        color: "var(--cyan)",
-                        letterSpacing: 2,
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      {t.title}
-                    </span>
                   </div>
-                  <p
-                    style={{
-                      fontSize: 15,
-                      color: "var(--muted)",
-                      lineHeight: 1.9,
-                    }}
-                  >
-                    {t.body}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <div
+                );
+              })
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {/* Progress CTA */}
+            <button
+              onClick={onProgress}
               style={{
                 background: "var(--surface)",
                 border: "1px solid var(--border2)",
-                borderRadius: 20,
-                padding: 30,
+                borderRadius: 18,
+                padding: 22,
+                cursor: "pointer",
+                textAlign: "left",
+                width: "100%",
+                transition: "all .2s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "var(--purple)";
+                e.currentTarget.style.background = "rgba(168,85,247,.05)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "var(--border2)";
+                e.currentTarget.style.background = "var(--surface)";
               }}
             >
               <div
                 style={{
-                  fontFamily: "'JetBrains Mono',monospace",
-                  fontSize: 12,
-                  color: "var(--muted)",
-                  letterSpacing: 2,
-                  marginBottom: 22,
-                  textTransform: "uppercase",
-                }}
-              >
-                Quick Reminders
-              </div>
-              <div
-                className="tips-quick"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))",
+                  display: "flex",
+                  alignItems: "center",
                   gap: 12,
+                  marginBottom: 10,
                 }}
               >
-                {QUICK_TIPS.map((t, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: 12,
-                      background: "var(--surface2)",
-                      borderRadius: 12,
-                      padding: "14px 16px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 26,
-                        height: 26,
-                        borderRadius: "50%",
-                        background: "rgba(127,255,0,.1)",
-                        border: "1px solid rgba(127,255,0,.2)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontFamily: "'JetBrains Mono',monospace",
-                        fontSize: 11,
-                        color: "var(--lime)",
-                        flexShrink: 0,
-                        marginTop: 1,
-                      }}
-                    >
-                      {i + 1}
-                    </div>
-                    <p
-                      style={{
-                        fontSize: 14,
-                        color: "var(--muted)",
-                        lineHeight: 1.75,
-                      }}
-                    >
-                      {t}
-                    </p>
-                  </div>
-                ))}
+                <span style={{ fontSize: 26 }}>📈</span>
+                <span style={{ fontWeight: 700, fontSize: 17 }}>
+                  Your Progress
+                </span>
+                <span
+                  style={{
+                    marginLeft: "auto",
+                    color: "var(--purple)",
+                    fontSize: 20,
+                  }}
+                >
+                  →
+                </span>
               </div>
-            </div>
-          </div>
-        )}
-      </div>
+              <p
+                style={{ fontSize: 14, color: "var(--muted)", lineHeight: 1.7 }}
+              >
+                {total > 0
+                  ? `${total} sessions · avg ${avgScore}% · ${rolesUsed.length} roles explored`
+                  : "Charts, achievements, and improvement tracking."}
+              </p>
+            </button>
 
-      {/* ── MODAL ── */}
-      {showModal &&
-        selRole &&
-        (() => {
-          const r = ROLE_META[selRole];
-          const cr = toRgb(r.color);
-          const ss = sessionHistory.filter((s) => s.role === selRole);
-          const roleAvg =
-            ss.length > 0
-              ? Math.round(ss.reduce((a, s) => a + s.avgScore, 0) / ss.length)
-              : null;
-          return (
+            {/* Voice AI card */}
             <div
               style={{
-                position: "fixed",
-                inset: 0,
-                background: "rgba(2,4,8,.88)",
-                backdropFilter: "blur(12px)",
-                zIndex: 100,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                background:
+                  "linear-gradient(135deg,rgba(0,200,255,.06),rgba(168,85,247,.06))",
+                border: "1px solid rgba(0,200,255,.15)",
+                borderRadius: 18,
                 padding: 20,
-                animation: "fadeIn .2s ease both",
-              }}
-              onClick={(e) => {
-                if (e.target === e.currentTarget) setShowModal(false);
+                animation: "glow 4s ease-in-out infinite",
               }}
             >
               <div
                 style={{
-                  background: "var(--surface)",
-                  border: `1px solid rgba(${cr},.4)`,
-                  borderRadius: 26,
-                  padding: 32,
-                  maxWidth: 500,
-                  width: "100%",
-                  position: "relative",
-                  animation: "fadeUp .3s ease both",
-                  boxShadow: `0 28px 80px rgba(${cr},.18)`,
-                  maxHeight: "92vh",
-                  overflowY: "auto",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  marginBottom: 12,
                 }}
               >
-                <button
-                  onClick={() => setShowModal(false)}
+                <div
                   style={{
-                    position: "absolute",
-                    top: 16,
-                    right: 16,
-                    background: "var(--surface2)",
-                    border: "1px solid var(--border2)",
-                    borderRadius: 9,
                     width: 36,
                     height: 36,
-                    cursor: "pointer",
-                    color: "var(--muted)",
-                    fontSize: 16,
+                    borderRadius: 10,
+                    background: "rgba(0,200,255,.12)",
+                    border: "1px solid rgba(0,200,255,.25)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
+                    fontSize: 18,
                   }}
                 >
-                  ✕
-                </button>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 16,
-                    marginBottom: 22,
-                  }}
-                >
+                  🎙
+                </div>
+                <div>
                   <div
                     style={{
-                      width: 58,
-                      height: 58,
-                      borderRadius: 18,
-                      background: `rgba(${cr},.12)`,
-                      border: `1px solid rgba(${cr},.3)`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 28,
+                      fontWeight: 700,
+                      fontSize: 15,
+                      color: "var(--cyan)",
                     }}
                   >
-                    {r.icon}
+                    Voice AI Active
                   </div>
-                  <div>
-                    <div
-                      style={{ fontWeight: 800, fontSize: 22, marginBottom: 6 }}
-                    >
-                      {r.label}
-                    </div>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <span
-                        style={{
-                          fontFamily: "'JetBrains Mono',monospace",
-                          fontSize: 10,
-                          color: r.color,
-                          background: `rgba(${cr},.1)`,
-                          border: `1px solid rgba(${cr},.2)`,
-                          borderRadius: 5,
-                          padding: "3px 9px",
-                        }}
-                      >
-                        {r.level}
-                      </span>
-                      {roleAvg !== null && (
-                        <span
-                          style={{
-                            fontFamily: "'JetBrains Mono',monospace",
-                            fontSize: 10,
-                            color: scoreColor(roleAvg),
-                            background: "var(--surface2)",
-                            borderRadius: 5,
-                            padding: "3px 9px",
-                          }}
-                        >
-                          Your avg: {roleAvg}% — {scoreLabel(roleAvg)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: 7,
-                    marginBottom: 22,
-                  }}
-                >
-                  {r.skills.map((s) => (
-                    <span
-                      key={s}
-                      style={{
-                        fontFamily: "'JetBrains Mono',monospace",
-                        fontSize: 11,
-                        color: r.color,
-                        background: `rgba(${cr},.08)`,
-                        border: `1px solid rgba(${cr},.2)`,
-                        borderRadius: 7,
-                        padding: "5px 12px",
-                      }}
-                    >
-                      {s}
-                    </span>
-                  ))}
-                </div>
-                <div style={{ marginBottom: 22 }}>
-                  <div
-                    style={{
-                      fontFamily: "'JetBrains Mono',monospace",
-                      fontSize: 11,
-                      color: "var(--muted)",
-                      letterSpacing: 2,
-                      marginBottom: 12,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Select Difficulty
-                  </div>
-                  <div style={{ display: "flex", gap: 10 }}>
-                    {["Junior", "Mid-Level", "Senior"].map((d) => (
-                      <button
-                        key={d}
-                        onClick={() => setSelDiff(d)}
-                        style={{
-                          flex: 1,
-                          background:
-                            selDiff === d
-                              ? `rgba(${cr},.1)`
-                              : "var(--surface2)",
-                          border: `1.5px solid ${
-                            selDiff === d ? r.color : "var(--border2)"
-                          }`,
-                          borderRadius: 12,
-                          padding: "12px 8px",
-                          cursor: "pointer",
-                          transition: "all .2s",
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontWeight: 700,
-                            fontSize: 13,
-                            color: selDiff === d ? r.color : "var(--muted)",
-                            marginBottom: 3,
-                          }}
-                        >
-                          {d}
-                        </div>
-                        <div
-                          style={{
-                            fontFamily: "'JetBrains Mono',monospace",
-                            fontSize: 10,
-                            color: "var(--dim)",
-                          }}
-                        >
-                          {DIFFICULTY_INFO[d].desc}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div
-                  style={{
-                    background: "var(--surface2)",
-                    borderRadius: 14,
-                    padding: 18,
-                    marginBottom: 22,
-                  }}
-                >
                   <div
                     style={{
                       fontFamily: "'JetBrains Mono',monospace",
                       fontSize: 10,
                       color: "var(--muted)",
-                      letterSpacing: 2,
-                      marginBottom: 12,
-                      textTransform: "uppercase",
                     }}
                   >
-                    What to expect
+                    Chrome / Edge only
                   </div>
-                  {[
-                    ["5 questions", "AI-generated for your role & difficulty"],
-                    ["2 min each", "Timer with hint per question"],
-                    ["AI scoring", "Detailed feedback on every answer"],
-                    ["Voice option", "Speak or type your answers"],
-                  ].map(([t, d]) => (
-                    <div
-                      key={t}
-                      style={{
-                        display: "flex",
-                        gap: 12,
-                        marginBottom: 8,
-                        alignItems: "flex-start",
-                      }}
-                    >
-                      <span
-                        style={{
-                          color: "var(--lime)",
-                          fontSize: 14,
-                          marginTop: 1,
-                        }}
-                      >
-                        ✓
-                      </span>
-                      <div>
-                        <span style={{ fontWeight: 600, fontSize: 14 }}>
-                          {t}
-                        </span>
-                        <span style={{ fontSize: 14, color: "var(--muted)" }}>
-                          {" "}
-                          — {d}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div style={{ display: "flex", gap: 12 }}>
-                  <button
-                    onClick={() => setShowModal(false)}
-                    style={{
-                      flex: 1,
-                      background: "transparent",
-                      border: "1px solid var(--border2)",
-                      borderRadius: 14,
-                      padding: "14px",
-                      color: "var(--muted)",
-                      fontFamily: "'Outfit',sans-serif",
-                      fontSize: 15,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={startNow}
-                    style={{
-                      flex: 2,
-                      background: `linear-gradient(135deg,${r.color},${r.color}99)`,
-                      border: "none",
-                      borderRadius: 14,
-                      padding: "14px",
-                      color: "#020408",
-                      fontFamily: "'Outfit',sans-serif",
-                      fontWeight: 800,
-                      fontSize: 16,
-                      cursor: "pointer",
-                      boxShadow: `0 6px 28px rgba(${cr},.35)`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 10,
-                    }}
-                  >
-                    <span style={{ fontSize: 20 }}>{r.icon}</span> Start
-                    Interview →
-                  </button>
                 </div>
               </div>
+              <p
+                style={{ fontSize: 14, color: "var(--muted)", lineHeight: 1.8 }}
+              >
+                AI speaks questions. Answer verbally for live{" "}
+                <b style={{ color: "var(--text)" }}>confidence</b> and{" "}
+                <b style={{ color: "var(--text)" }}>pace</b> scoring.
+              </p>
             </div>
-          );
-        })()}
+
+            {/* Roles practiced */}
+            {rolesUsed.length > 0 && (
+              <div
+                style={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--border2)",
+                  borderRadius: 18,
+                  padding: 20,
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: "'JetBrains Mono',monospace",
+                    fontSize: 10,
+                    color: "var(--muted)",
+                    letterSpacing: 2,
+                    marginBottom: 14,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Roles Practiced
+                </div>
+                {rolesUsed.map((r) => {
+                  const m = ROLE_META[r];
+                  return m ? (
+                    <div
+                      key={r}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        marginBottom: 8,
+                      }}
+                    >
+                      <span style={{ fontSize: 16 }}>{m.icon}</span>
+                      <span
+                        style={{ fontSize: 13, color: "var(--text)", flex: 1 }}
+                      >
+                        {m.label}
+                      </span>
+                      <div
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: m.color,
+                        }}
+                      />
+                    </div>
+                  ) : null;
+                })}
+                {rolesUsed.length < 6 && (
+                  <div
+                    style={{
+                      fontFamily: "'JetBrains Mono',monospace",
+                      fontSize: 10,
+                      color: "var(--dim)",
+                      marginTop: 10,
+                    }}
+                  >
+                    {6 - rolesUsed.length} more to explore
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
