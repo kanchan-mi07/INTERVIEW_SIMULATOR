@@ -9,14 +9,19 @@ const CSS = `
   --cyan:#00C8FF;--lime:#7FFF00;--orange:#FF6030;--purple:#A855F7;
   --gold:#FFD700;--text:#e2eaf4;--muted:#8aa8c0;--dim:#2a4560;--red:#ff4444;
 }
-body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;overflow-x:hidden}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border3)}
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 .fu{animation:fadeUp .45s ease both}
+
 @media(max-width:600px){
-  .hist-row{flex-wrap:wrap!important}
-  .hist-actions{width:100%!important;justify-content:flex-end!important}
+  .hist-card{flex-wrap:wrap!important}
+  .hist-score{min-width:unset!important;flex:1!important;text-align:left!important;padding-left:56px!important}
+  .hist-retry{width:100%!important;margin-top:4px!important}
+  .stat-row{flex-wrap:wrap!important;gap:12px!important}
+  .filter-row{gap:6px!important}
+  .filter-row button{padding:6px 10px!important;font-size:10px!important}
 }
 `;
 
@@ -63,8 +68,8 @@ const ROLE_META = {
 
 export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
   const [filter, setFilter] = useState("all");
-  const total = sessionHistory.length;
 
+  const total = sessionHistory.length;
   const filtered = [...sessionHistory]
     .reverse()
     .filter((s) => filter === "all" || s.role === filter);
@@ -74,6 +79,7 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
       : 0;
   const best =
     total > 0 ? Math.max(...sessionHistory.map((s) => s.avgScore)) : 0;
+  const rolesUsed = [...new Set(sessionHistory.map((s) => s.role))];
 
   return (
     <div
@@ -92,7 +98,7 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "0 28px",
+          padding: "0 20px",
           height: 66,
           background: "rgba(2,4,8,.93)",
           backdropFilter: "blur(20px)",
@@ -102,18 +108,19 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
           zIndex: 50,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <button
             onClick={onBack}
             style={{
               background: "var(--surface)",
               border: "1px solid var(--border2)",
               borderRadius: 9,
-              padding: "8px 16px",
+              padding: "8px 14px",
               cursor: "pointer",
               fontFamily: "'JetBrains Mono',monospace",
               fontSize: 12,
               color: "var(--muted)",
+              whiteSpace: "nowrap",
             }}
           >
             ← Dashboard
@@ -125,7 +132,7 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
               color: "var(--muted)",
             }}
           >
-            / Session History
+            / History
           </span>
         </div>
         <span
@@ -137,6 +144,7 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
             border: "1px solid var(--border2)",
             borderRadius: 5,
             padding: "4px 10px",
+            flexShrink: 0,
           }}
         >
           {total} total
@@ -144,32 +152,38 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
       </nav>
 
       <div
-        style={{ maxWidth: 900, margin: "0 auto", padding: "36px 24px 80px" }}
+        style={{ maxWidth: 900, margin: "0 auto", padding: "28px 16px 80px" }}
       >
-        {/* Heading */}
-        <div className="fu" style={{ marginBottom: 28 }}>
+        {/* Heading + stats */}
+        <div className="fu" style={{ marginBottom: 24 }}>
           <h1
             style={{
               fontWeight: 900,
-              fontSize: "clamp(24px,4vw,38px)",
-              marginBottom: 10,
+              fontSize: "clamp(22px,4vw,38px)",
+              marginBottom: 14,
             }}
           >
             Session <span style={{ color: "var(--orange)" }}>History</span>
           </h1>
           {total > 0 && (
-            <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+            <div
+              className="stat-row"
+              style={{ display: "flex", gap: 28, flexWrap: "wrap" }}
+            >
               {[
                 { l: "Total Sessions", v: total, c: "var(--cyan)" },
                 { l: "Average Score", v: `${avgScore}%`, c: "var(--lime)" },
                 { l: "Best Score", v: best, c: "var(--gold)" },
               ].map((s) => (
-                <div key={s.l}>
+                <div
+                  key={s.l}
+                  style={{ display: "flex", alignItems: "baseline", gap: 8 }}
+                >
                   <span
                     style={{
                       fontFamily: "'JetBrains Mono',monospace",
                       fontWeight: 800,
-                      fontSize: 22,
+                      fontSize: 24,
                       color: s.c,
                     }}
                   >
@@ -180,7 +194,6 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
                       fontFamily: "'JetBrains Mono',monospace",
                       fontSize: 11,
                       color: "var(--muted)",
-                      marginLeft: 8,
                     }}
                   >
                     {s.l}
@@ -191,20 +204,21 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
           )}
         </div>
 
-        {/* Role filter */}
+        {/* Role filter pills */}
         {total > 0 && (
           <div
+            className="filter-row"
             style={{
               display: "flex",
               gap: 8,
-              marginBottom: 24,
+              marginBottom: 22,
               flexWrap: "wrap",
             }}
           >
             <button
               onClick={() => setFilter("all")}
               style={{
-                padding: "7px 16px",
+                padding: "7px 14px",
                 borderRadius: 20,
                 border: `1.5px solid ${
                   filter === "all" ? "var(--cyan)" : "var(--border2)"
@@ -216,11 +230,12 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
                 fontSize: 11,
                 cursor: "pointer",
                 transition: "all .2s",
+                whiteSpace: "nowrap",
               }}
             >
               All
             </button>
-            {[...new Set(sessionHistory.map((s) => s.role))].map((r) => {
+            {rolesUsed.map((r) => {
               const m = ROLE_META[r];
               if (!m) return null;
               return (
@@ -228,7 +243,7 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
                   key={r}
                   onClick={() => setFilter(r)}
                   style={{
-                    padding: "7px 16px",
+                    padding: "7px 14px",
                     borderRadius: 20,
                     border: `1.5px solid ${
                       filter === r ? m.color : "var(--border2)"
@@ -244,10 +259,11 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
                     transition: "all .2s",
                     display: "flex",
                     alignItems: "center",
-                    gap: 6,
+                    gap: 5,
+                    whiteSpace: "nowrap",
                   }}
                 >
-                  <span style={{ fontSize: 13 }}>{m.icon}</span>
+                  <span style={{ fontSize: 12 }}>{m.icon}</span>
                   {m.label}
                 </button>
               );
@@ -255,7 +271,7 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
           </div>
         )}
 
-        {/* Sessions */}
+        {/* Session list */}
         {total === 0 ? (
           <div
             style={{
@@ -302,8 +318,22 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
                 cursor: "pointer",
               }}
             >
-              ← Pick a Role
+              ← Go to Dashboard
             </button>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div
+            style={{
+              textAlign: "center",
+              padding: "40px 20px",
+              background: "var(--surface)",
+              border: "1px solid var(--border2)",
+              borderRadius: 16,
+            }}
+          >
+            <p style={{ color: "var(--muted)", fontSize: 15 }}>
+              No sessions for this role yet.
+            </p>
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -319,7 +349,7 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
                     background: "var(--surface)",
                     border: "1px solid var(--border2)",
                     borderRadius: 18,
-                    padding: "18px 22px",
+                    padding: "18px 20px",
                     transition: "border-color .2s",
                   }}
                   onMouseEnter={(e) =>
@@ -330,36 +360,36 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
                   }
                 >
                   <div
-                    className="hist-row"
-                    style={{ display: "flex", alignItems: "center", gap: 16 }}
+                    className="hist-card"
+                    style={{ display: "flex", alignItems: "center", gap: 14 }}
                   >
                     <div
                       style={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 14,
+                        width: 46,
+                        height: 46,
+                        borderRadius: 13,
                         background: `rgba(${cr},.1)`,
                         border: `1px solid rgba(${cr},.2)`,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontSize: 24,
+                        fontSize: 22,
                         flexShrink: 0,
                       }}
                     >
                       {meta.icon}
                     </div>
-                    <div style={{ flex: 1, minWidth: 120 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <div
                         style={{
                           display: "flex",
-                          gap: 8,
+                          gap: 7,
                           marginBottom: 5,
                           flexWrap: "wrap",
                           alignItems: "center",
                         }}
                       >
-                        <span style={{ fontWeight: 700, fontSize: 16 }}>
+                        <span style={{ fontWeight: 700, fontSize: 15 }}>
                           {meta.label}
                         </span>
                         <span
@@ -370,7 +400,7 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
                             background: "var(--surface2)",
                             border: "1px solid var(--border2)",
                             borderRadius: 10,
-                            padding: "2px 9px",
+                            padding: "2px 8px",
                           }}
                         >
                           {s.difficulty}
@@ -384,7 +414,7 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
                               background: "rgba(0,200,255,.08)",
                               border: "1px solid rgba(0,200,255,.2)",
                               borderRadius: 10,
-                              padding: "2px 9px",
+                              padding: "2px 8px",
                             }}
                           >
                             🎙 Voice
@@ -403,9 +433,10 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
                       </div>
                     </div>
                     <div
+                      className="hist-score"
                       style={{
                         textAlign: "center",
-                        minWidth: 85,
+                        minWidth: 80,
                         flexShrink: 0,
                       }}
                     >
@@ -413,7 +444,7 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
                         style={{
                           fontFamily: "'JetBrains Mono',monospace",
                           fontWeight: 900,
-                          fontSize: 30,
+                          fontSize: 28,
                           color: scoreColor(s.avgScore),
                           lineHeight: 1,
                         }}
@@ -432,34 +463,32 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
                         {scoreLabel(s.avgScore)}
                       </div>
                     </div>
-                    <div
-                      className="hist-actions"
-                      style={{ display: "flex", flexShrink: 0 }}
+                    <button
+                      className="hist-retry"
+                      onClick={() => onStart(s.role)}
+                      style={{
+                        flexShrink: 0,
+                        background: `rgba(${cr},.08)`,
+                        border: `1px solid rgba(${cr},.2)`,
+                        borderRadius: 10,
+                        padding: "10px 16px",
+                        color: meta.color,
+                        fontFamily: "'Outfit',sans-serif",
+                        fontWeight: 700,
+                        fontSize: 13,
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                      }}
                     >
-                      <button
-                        onClick={() => onStart(s.role)}
-                        style={{
-                          background: `rgba(${cr},.08)`,
-                          border: `1px solid rgba(${cr},.2)`,
-                          borderRadius: 10,
-                          padding: "10px 18px",
-                          color: meta.color,
-                          fontFamily: "'Outfit',sans-serif",
-                          fontWeight: 700,
-                          fontSize: 13,
-                          cursor: "pointer",
-                        }}
-                      >
-                        Retry →
-                      </button>
-                    </div>
+                      Retry →
+                    </button>
                   </div>
                   <div
                     style={{
                       marginTop: 12,
-                      height: 5,
+                      height: 4,
                       background: "var(--surface2)",
-                      borderRadius: 3,
+                      borderRadius: 2,
                       overflow: "hidden",
                     }}
                   >
@@ -468,7 +497,7 @@ export default function HistoryPage({ sessionHistory = [], onBack, onStart }) {
                         height: "100%",
                         width: `${s.avgScore}%`,
                         background: scoreColor(s.avgScore),
-                        borderRadius: 3,
+                        borderRadius: 2,
                         opacity: 0.65,
                       }}
                     />

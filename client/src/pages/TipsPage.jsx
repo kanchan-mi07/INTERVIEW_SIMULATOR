@@ -7,13 +7,17 @@ const CSS = `
   --cyan:#00C8FF;--lime:#7FFF00;--orange:#FF6030;--purple:#A855F7;
   --text:#e2eaf4;--muted:#8aa8c0;--dim:#2a4560;
 }
-body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;overflow-x:hidden}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--dim)}
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 .fu{animation:fadeUp .45s ease both}
+
 @media(max-width:700px){
   .tips-grid{grid-template-columns:1fr!important}
   .tips-quick{grid-template-columns:1fr!important}
+}
+@media(max-width:500px){
+  .tips-grid{grid-template-columns:1fr!important}
 }
 `;
 
@@ -26,7 +30,7 @@ const TIPS = [
   {
     icon: "🧠",
     title: "Research First",
-    body: "Look up the company's tech stack, recent news, and team structure before each session. More relevant answers show genuine interest.",
+    body: "Look up the company's tech stack, recent news, and team structure before each session. More relevant answers show genuine interest and preparation.",
   },
   {
     icon: "⏱",
@@ -46,7 +50,7 @@ const TIPS = [
   {
     icon: "📈",
     title: "Track Growth",
-    body: "Review your progress page after each session to spot patterns in your weak areas. Consistent practice beats cramming.",
+    body: "Review your progress page after each session to spot patterns in your weak areas. Consistent practice beats cramming every time.",
   },
 ];
 
@@ -83,7 +87,7 @@ export default function TipsPage({ onBack }) {
           display: "flex",
           alignItems: "center",
           gap: 14,
-          padding: "0 28px",
+          padding: "0 20px",
           height: 66,
           background: "rgba(2,4,8,.93)",
           backdropFilter: "blur(20px)",
@@ -99,11 +103,12 @@ export default function TipsPage({ onBack }) {
             background: "var(--surface)",
             border: "1px solid var(--border2)",
             borderRadius: 9,
-            padding: "8px 16px",
+            padding: "8px 14px",
             cursor: "pointer",
             fontFamily: "'JetBrains Mono',monospace",
             fontSize: 12,
             color: "var(--muted)",
+            whiteSpace: "nowrap",
           }}
         >
           ← Dashboard
@@ -115,26 +120,26 @@ export default function TipsPage({ onBack }) {
             color: "var(--muted)",
           }}
         >
-          / Interview Tips
+          / Tips
         </span>
       </nav>
 
       <div
-        style={{ maxWidth: 1100, margin: "0 auto", padding: "36px 24px 80px" }}
+        style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 16px 80px" }}
       >
         {/* Heading */}
-        <div className="fu" style={{ marginBottom: 32 }}>
+        <div className="fu" style={{ marginBottom: 28 }}>
           <h1
             style={{
               fontWeight: 900,
-              fontSize: "clamp(24px,4vw,38px)",
+              fontSize: "clamp(22px,4vw,38px)",
               marginBottom: 10,
             }}
           >
             Interview{" "}
             <span style={{ color: "var(--lime)" }}>Tips & Strategy</span>
           </h1>
-          <p style={{ color: "var(--muted)", fontSize: 16, lineHeight: 1.7 }}>
+          <p style={{ color: "var(--muted)", fontSize: 15, lineHeight: 1.7 }}>
             Proven strategies to help you perform at your best in every
             interview.
           </p>
@@ -146,8 +151,8 @@ export default function TipsPage({ onBack }) {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))",
-            gap: 16,
-            marginBottom: 32,
+            gap: 14,
+            marginBottom: 28,
           }}
         >
           {TIPS.map((t, i) => (
@@ -159,7 +164,7 @@ export default function TipsPage({ onBack }) {
                 background: "var(--surface)",
                 border: "1px solid var(--border2)",
                 borderRadius: 18,
-                padding: 28,
+                padding: "24px 22px",
                 transition: "all .25s",
               }}
               onMouseEnter={(e) => {
@@ -181,15 +186,16 @@ export default function TipsPage({ onBack }) {
               >
                 <div
                   style={{
-                    width: 46,
-                    height: 46,
-                    borderRadius: 13,
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
                     background: "rgba(0,200,255,.08)",
                     border: "1px solid rgba(0,200,255,.15)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: 22,
+                    fontSize: 20,
+                    flexShrink: 0,
                   }}
                 >
                   {t.icon}
@@ -225,7 +231,7 @@ export default function TipsPage({ onBack }) {
             background: "var(--surface)",
             border: "1px solid var(--border2)",
             borderRadius: 20,
-            padding: 30,
+            padding: "24px 20px",
           }}
         >
           <div
@@ -233,13 +239,13 @@ export default function TipsPage({ onBack }) {
               display: "flex",
               alignItems: "center",
               gap: 10,
-              marginBottom: 22,
+              marginBottom: 20,
             }}
           >
             <div
               style={{
                 width: 4,
-                height: 22,
+                height: 20,
                 background: "var(--lime)",
                 borderRadius: 2,
               }}
@@ -260,8 +266,8 @@ export default function TipsPage({ onBack }) {
             className="tips-quick"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))",
-              gap: 12,
+              gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))",
+              gap: 10,
             }}
           >
             {QUICK_TIPS.map((t, i) => (
@@ -273,13 +279,13 @@ export default function TipsPage({ onBack }) {
                   gap: 12,
                   background: "var(--surface2)",
                   borderRadius: 12,
-                  padding: "14px 16px",
+                  padding: "13px 15px",
                 }}
               >
                 <div
                   style={{
-                    width: 26,
-                    height: 26,
+                    width: 24,
+                    height: 24,
                     borderRadius: "50%",
                     background: "rgba(127,255,0,.1)",
                     border: "1px solid rgba(127,255,0,.2)",

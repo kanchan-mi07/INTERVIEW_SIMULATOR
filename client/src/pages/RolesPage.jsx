@@ -9,17 +9,21 @@ const CSS = `
   --cyan:#00C8FF;--lime:#7FFF00;--orange:#FF6030;--purple:#A855F7;
   --gold:#FFD700;--text:#e2eaf4;--muted:#8aa8c0;--dim:#2a4560;--red:#ff4444;
 }
-body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;overflow-x:hidden}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border3)}
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .fu{animation:fadeUp .45s ease both}
+
 @media(max-width:700px){
   .roles-grid{grid-template-columns:1fr 1fr!important}
+  .nav-search{display:none!important}
   .modal-diff{flex-direction:column!important}
+  .modal-actions{flex-direction:column!important}
 }
 @media(max-width:440px){
   .roles-grid{grid-template-columns:1fr!important}
+  .modal-pad{padding:20px 16px!important}
 }
 `;
 
@@ -144,7 +148,7 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "0 28px",
+          padding: "0 20px",
           height: 66,
           background: "rgba(2,4,8,.93)",
           backdropFilter: "blur(20px)",
@@ -152,20 +156,29 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
           position: "sticky",
           top: 0,
           zIndex: 50,
+          gap: 12,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            flexShrink: 0,
+          }}
+        >
           <button
             onClick={onBack}
             style={{
               background: "var(--surface)",
               border: "1px solid var(--border2)",
               borderRadius: 9,
-              padding: "8px 16px",
+              padding: "8px 14px",
               cursor: "pointer",
               fontFamily: "'JetBrains Mono',monospace",
               fontSize: 12,
               color: "var(--muted)",
+              whiteSpace: "nowrap",
             }}
           >
             ← Dashboard
@@ -175,26 +188,30 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
               fontFamily: "'JetBrains Mono',monospace",
               fontSize: 12,
               color: "var(--muted)",
+              display: "none",
             }}
           >
-            / Practice Roles
+            / Roles
           </span>
         </div>
-        <div style={{ position: "relative" }}>
+        <div
+          className="nav-search"
+          style={{ position: "relative", flex: "0 0 220px" }}
+        >
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search roles or skills…"
+            placeholder="Search roles…"
             style={{
+              width: "100%",
               background: "var(--surface)",
               border: "1px solid var(--border2)",
               borderRadius: 10,
-              padding: "9px 16px 9px 36px",
+              padding: "9px 14px 9px 36px",
               fontFamily: "'Outfit',sans-serif",
               fontSize: 14,
               color: "var(--text)",
               outline: "none",
-              width: 220,
             }}
           />
           <span
@@ -203,7 +220,7 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
               left: 11,
               top: "50%",
               transform: "translateY(-50%)",
-              fontSize: 14,
+              fontSize: 13,
               pointerEvents: "none",
             }}
           >
@@ -213,14 +230,14 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
       </nav>
 
       <div
-        style={{ maxWidth: 1200, margin: "0 auto", padding: "36px 24px 80px" }}
+        style={{ maxWidth: 1200, margin: "0 auto", padding: "28px 16px 80px" }}
       >
         {/* Heading */}
-        <div className="fu" style={{ marginBottom: 32 }}>
+        <div className="fu" style={{ marginBottom: 28 }}>
           <h1
             style={{
               fontWeight: 900,
-              fontSize: "clamp(24px,4vw,40px)",
+              fontSize: "clamp(22px,4vw,40px)",
               marginBottom: 10,
             }}
           >
@@ -236,10 +253,47 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
               Interview Role
             </span>
           </h1>
-          <p style={{ color: "var(--muted)", fontSize: 16, lineHeight: 1.7 }}>
-            Select a role below to start a practice interview. Each session has
-            5 AI-generated questions.
+          <p style={{ color: "var(--muted)", fontSize: 15, lineHeight: 1.7 }}>
+            Select a role to start a practice session. Each interview has 5
+            AI-generated questions.
           </p>
+        </div>
+
+        {/* Mobile search */}
+        <div
+          style={{ display: "none", marginBottom: 18 }}
+          className="mobile-search"
+        >
+          <div style={{ position: "relative" }}>
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search roles or skills…"
+              style={{
+                width: "100%",
+                background: "var(--surface)",
+                border: "1px solid var(--border2)",
+                borderRadius: 10,
+                padding: "10px 14px 10px 36px",
+                fontFamily: "'Outfit',sans-serif",
+                fontSize: 14,
+                color: "var(--text)",
+                outline: "none",
+              }}
+            />
+            <span
+              style={{
+                position: "absolute",
+                left: 11,
+                top: "50%",
+                transform: "translateY(-50%)",
+                fontSize: 13,
+                pointerEvents: "none",
+              }}
+            >
+              🔍
+            </span>
+          </div>
         </div>
 
         {/* Role cards */}
@@ -247,8 +301,8 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
           className="roles-grid"
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill,minmax(290px,1fr))",
-            gap: 16,
+            gridTemplateColumns: "repeat(auto-fill,minmax(270px,1fr))",
+            gap: 14,
           }}
         >
           {filtered.map(([id, r], i) => {
@@ -268,11 +322,11 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                   background: isH ? r.bg : "var(--surface)",
                   border: `1px solid ${isH ? r.color : "var(--border2)"}`,
                   borderRadius: 20,
-                  padding: "24px 22px",
+                  padding: "22px 20px",
                   cursor: "pointer",
                   transition: "all .25s",
-                  transform: isH ? "translateY(-5px)" : "translateY(0)",
-                  boxShadow: isH ? `0 16px 48px rgba(${cr},.2)` : "none",
+                  transform: isH ? "translateY(-4px)" : "translateY(0)",
+                  boxShadow: isH ? `0 14px 44px rgba(${cr},.2)` : "none",
                   position: "relative",
                   overflow: "hidden",
                 }}
@@ -297,20 +351,20 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "flex-start",
-                    marginBottom: 16,
+                    marginBottom: 14,
                   }}
                 >
                   <div
                     style={{
-                      width: 54,
-                      height: 54,
-                      borderRadius: 16,
+                      width: 52,
+                      height: 52,
+                      borderRadius: 15,
                       background: `rgba(${cr},.12)`,
                       border: `1px solid rgba(${cr},.25)`,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: 28,
+                      fontSize: 26,
                     }}
                   >
                     {r.icon}
@@ -320,7 +374,7 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "flex-end",
-                      gap: 6,
+                      gap: 5,
                     }}
                   >
                     <span
@@ -331,7 +385,7 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                         background: `rgba(${cr},.1)`,
                         border: `1px solid rgba(${cr},.2)`,
                         borderRadius: 4,
-                        padding: "3px 9px",
+                        padding: "2px 8px",
                         letterSpacing: 1,
                       }}
                     >
@@ -345,7 +399,7 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                           color: scoreColor(roleAvg),
                           background: "var(--surface2)",
                           borderRadius: 4,
-                          padding: "3px 9px",
+                          padding: "2px 8px",
                         }}
                       >
                         avg {roleAvg}% — {scoreLabel(roleAvg)}
@@ -356,9 +410,9 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                 <div
                   style={{
                     fontWeight: 700,
-                    fontSize: 19,
+                    fontSize: 18,
                     color: isH ? r.color : "var(--text)",
-                    marginBottom: 10,
+                    marginBottom: 9,
                     transition: "color .2s",
                   }}
                 >
@@ -368,8 +422,8 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                   style={{
                     display: "flex",
                     flexWrap: "wrap",
-                    gap: 6,
-                    marginBottom: 16,
+                    gap: 5,
+                    marginBottom: 14,
                   }}
                 >
                   {r.skills.map((s) => (
@@ -383,8 +437,8 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                         border: `1px solid ${
                           isH ? `rgba(${cr},.2)` : "var(--border)"
                         }`,
-                        borderRadius: 5,
-                        padding: "3px 9px",
+                        borderRadius: 4,
+                        padding: "2px 8px",
                         transition: "all .2s",
                       }}
                     >
@@ -413,7 +467,7 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                   <span
                     style={{
                       fontFamily: "'JetBrains Mono',monospace",
-                      fontSize: 13,
+                      fontSize: 12,
                       color: isH ? r.color : "var(--dim)",
                       fontWeight: isH ? 700 : 400,
                       transition: "color .2s",
@@ -425,8 +479,8 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                 {roleAvg !== null && (
                   <div
                     style={{
-                      marginTop: 12,
-                      height: 4,
+                      marginTop: 10,
+                      height: 3,
                       background: "var(--surface2)",
                       borderRadius: 2,
                       overflow: "hidden",
@@ -471,7 +525,7 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: 20,
+                padding: 16,
                 animation: "fadeIn .2s ease both",
               }}
               onClick={(e) => {
@@ -479,16 +533,17 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
               }}
             >
               <div
+                className="modal-pad"
                 style={{
                   background: "var(--surface)",
                   border: `1px solid rgba(${cr},.4)`,
-                  borderRadius: 26,
-                  padding: 32,
-                  maxWidth: 500,
+                  borderRadius: 24,
+                  padding: 28,
+                  maxWidth: 480,
                   width: "100%",
                   position: "relative",
                   animation: "fadeUp .3s ease both",
-                  boxShadow: `0 28px 80px rgba(${cr},.18)`,
+                  boxShadow: `0 24px 70px rgba(${cr},.18)`,
                   maxHeight: "92vh",
                   overflowY: "auto",
                 }}
@@ -497,16 +552,16 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                   onClick={() => setShowModal(false)}
                   style={{
                     position: "absolute",
-                    top: 16,
-                    right: 16,
+                    top: 14,
+                    right: 14,
                     background: "var(--surface2)",
                     border: "1px solid var(--border2)",
-                    borderRadius: 9,
-                    width: 36,
-                    height: 36,
+                    borderRadius: 8,
+                    width: 34,
+                    height: 34,
                     cursor: "pointer",
                     color: "var(--muted)",
-                    fontSize: 16,
+                    fontSize: 15,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -518,32 +573,33 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 16,
-                    marginBottom: 22,
+                    gap: 14,
+                    marginBottom: 20,
                   }}
                 >
                   <div
                     style={{
-                      width: 58,
-                      height: 58,
-                      borderRadius: 18,
+                      width: 54,
+                      height: 54,
+                      borderRadius: 16,
                       background: `rgba(${cr},.12)`,
                       border: `1px solid rgba(${cr},.3)`,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: 28,
+                      fontSize: 26,
+                      flexShrink: 0,
                     }}
                   >
                     {r.icon}
                   </div>
                   <div>
                     <div
-                      style={{ fontWeight: 800, fontSize: 22, marginBottom: 6 }}
+                      style={{ fontWeight: 800, fontSize: 20, marginBottom: 5 }}
                     >
                       {r.label}
                     </div>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
                       <span
                         style={{
                           fontFamily: "'JetBrains Mono',monospace",
@@ -552,7 +608,7 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                           background: `rgba(${cr},.1)`,
                           border: `1px solid rgba(${cr},.2)`,
                           borderRadius: 5,
-                          padding: "3px 9px",
+                          padding: "2px 8px",
                         }}
                       >
                         {r.level}
@@ -565,10 +621,10 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                             color: scoreColor(roleAvg),
                             background: "var(--surface2)",
                             borderRadius: 5,
-                            padding: "3px 9px",
+                            padding: "2px 8px",
                           }}
                         >
-                          Your avg: {roleAvg}% — {scoreLabel(roleAvg)}
+                          avg: {roleAvg}% — {scoreLabel(roleAvg)}
                         </span>
                       )}
                     </div>
@@ -578,8 +634,8 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                   style={{
                     display: "flex",
                     flexWrap: "wrap",
-                    gap: 7,
-                    marginBottom: 22,
+                    gap: 6,
+                    marginBottom: 20,
                   }}
                 >
                   {r.skills.map((s) => (
@@ -591,22 +647,22 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                         color: r.color,
                         background: `rgba(${cr},.08)`,
                         border: `1px solid rgba(${cr},.2)`,
-                        borderRadius: 7,
-                        padding: "5px 12px",
+                        borderRadius: 6,
+                        padding: "4px 10px",
                       }}
                     >
                       {s}
                     </span>
                   ))}
                 </div>
-                <div style={{ marginBottom: 22 }}>
+                <div style={{ marginBottom: 20 }}>
                   <div
                     style={{
                       fontFamily: "'JetBrains Mono',monospace",
-                      fontSize: 11,
+                      fontSize: 10,
                       color: "var(--muted)",
                       letterSpacing: 2,
-                      marginBottom: 12,
+                      marginBottom: 10,
                       textTransform: "uppercase",
                     }}
                   >
@@ -614,7 +670,7 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                   </div>
                   <div
                     className="modal-diff"
-                    style={{ display: "flex", gap: 10 }}
+                    style={{ display: "flex", gap: 8 }}
                   >
                     {["Junior", "Mid-Level", "Senior"].map((d) => (
                       <button
@@ -629,8 +685,8 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                           border: `1.5px solid ${
                             selDiff === d ? r.color : "var(--border2)"
                           }`,
-                          borderRadius: 12,
-                          padding: "12px 8px",
+                          borderRadius: 11,
+                          padding: "11px 6px",
                           cursor: "pointer",
                           transition: "all .2s",
                         }}
@@ -640,7 +696,7 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                             fontWeight: 700,
                             fontSize: 13,
                             color: selDiff === d ? r.color : "var(--muted)",
-                            marginBottom: 3,
+                            marginBottom: 2,
                           }}
                         >
                           {d}
@@ -648,7 +704,7 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                         <div
                           style={{
                             fontFamily: "'JetBrains Mono',monospace",
-                            fontSize: 10,
+                            fontSize: 9,
                             color: "var(--dim)",
                           }}
                         >
@@ -661,23 +717,11 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                 <div
                   style={{
                     background: "var(--surface2)",
-                    borderRadius: 14,
-                    padding: 18,
-                    marginBottom: 22,
+                    borderRadius: 12,
+                    padding: 16,
+                    marginBottom: 20,
                   }}
                 >
-                  <div
-                    style={{
-                      fontFamily: "'JetBrains Mono',monospace",
-                      fontSize: 10,
-                      color: "var(--muted)",
-                      letterSpacing: 2,
-                      marginBottom: 12,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    What to expect
-                  </div>
                   {[
                     ["5 questions", "AI-generated for your role & difficulty"],
                     ["2 min each", "Timer with hint per question"],
@@ -688,25 +732,25 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                       key={t}
                       style={{
                         display: "flex",
-                        gap: 12,
-                        marginBottom: 8,
+                        gap: 10,
+                        marginBottom: 7,
                         alignItems: "flex-start",
                       }}
                     >
                       <span
                         style={{
                           color: "var(--lime)",
-                          fontSize: 14,
+                          fontSize: 13,
                           marginTop: 1,
                         }}
                       >
                         ✓
                       </span>
                       <div>
-                        <span style={{ fontWeight: 600, fontSize: 14 }}>
+                        <span style={{ fontWeight: 600, fontSize: 13 }}>
                           {t}
                         </span>
-                        <span style={{ fontSize: 14, color: "var(--muted)" }}>
+                        <span style={{ fontSize: 13, color: "var(--muted)" }}>
                           {" "}
                           — {d}
                         </span>
@@ -714,18 +758,21 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                     </div>
                   ))}
                 </div>
-                <div style={{ display: "flex", gap: 12 }}>
+                <div
+                  className="modal-actions"
+                  style={{ display: "flex", gap: 10 }}
+                >
                   <button
                     onClick={() => setShowModal(false)}
                     style={{
                       flex: 1,
                       background: "transparent",
                       border: "1px solid var(--border2)",
-                      borderRadius: 14,
-                      padding: "14px",
+                      borderRadius: 12,
+                      padding: "13px",
                       color: "var(--muted)",
                       fontFamily: "'Outfit',sans-serif",
-                      fontSize: 15,
+                      fontSize: 14,
                       cursor: "pointer",
                     }}
                   >
@@ -737,21 +784,21 @@ export default function RolesPage({ sessionHistory = [], onBack, onStart }) {
                       flex: 2,
                       background: `linear-gradient(135deg,${r.color},${r.color}99)`,
                       border: "none",
-                      borderRadius: 14,
-                      padding: "14px",
+                      borderRadius: 12,
+                      padding: "13px",
                       color: "#020408",
                       fontFamily: "'Outfit',sans-serif",
                       fontWeight: 800,
-                      fontSize: 16,
+                      fontSize: 15,
                       cursor: "pointer",
-                      boxShadow: `0 6px 28px rgba(${cr},.35)`,
+                      boxShadow: `0 6px 24px rgba(${cr},.3)`,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      gap: 10,
+                      gap: 8,
                     }}
                   >
-                    <span style={{ fontSize: 20 }}>{r.icon}</span> Start
+                    <span style={{ fontSize: 18 }}>{r.icon}</span> Start
                     Interview →
                   </button>
                 </div>
