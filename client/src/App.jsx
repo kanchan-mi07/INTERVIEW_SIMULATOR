@@ -125,9 +125,9 @@ export default function App() {
     setPage("auth");
   };
 
-  const goToProgress = async () => {
-    await fetchSessions();
+  const goToProgress = () => {
     setPage("progress");
+    fetchSessions();
   };
 
   const handleStartRole = (r) => {
